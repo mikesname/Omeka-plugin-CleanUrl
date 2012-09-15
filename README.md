@@ -6,7 +6,7 @@ Clean Url (plugin for Omeka)
 Summary
 -------
 
-This plugin allows to have clean and readable URL like
+This plugin allows to have clean, readable and search engine optimized URLs like
 http://example.com/my_collection/dc:identifier instead of
 http://example.com/items/show/internal_code.
 
@@ -29,6 +29,7 @@ Warning
 -------
 
 Use it at your own risk.
+
 It's always recommended to backup your database so you can roll back if needed.
 
 
@@ -94,8 +95,9 @@ First version of this plugin has been built for École des Ponts ParisTech
 Copyright
 ---------
 
-Copyright © 2012 Daniel Berthereau for École des Ponts ParisTech
-Based on ItemId of Jim Safley (see [GitHub ItemId](7))
+Copyright Daniel Berthereau for École des Ponts ParisTech, 2012
+
+Based on ItemId of Jim Safley (see [GitHub ItemId][7])
 
 
 [1]: http://www.omeka.org "Omeka.org"
