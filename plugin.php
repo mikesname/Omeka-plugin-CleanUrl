@@ -48,7 +48,7 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      */
     public function hookInstall()
     {
-        $this->_installOptions();
+        self::_installOptions();
 
         // Set default short names of collection.
         $collection_names = array();
@@ -68,7 +68,7 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      */
     public function hookUninstall()
     {
-        $this->_uninstallOptions();
+        self::_uninstallOptions();
     }
 
     /**
@@ -226,15 +226,15 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
     }
 
     /**
-    * Creates the default short name of a collection.
-    *
-    * Default name is the first word of the collection name. The id is added if
-    * this name is already used.
-    *
-    * @param object $collection
-    *
-    * @return string Unique sanitized name of the collection.
-    */
+     * Creates the default short name of a collection.
+     *
+     * Default name is the first word of the collection name. The id is added if
+     * this name is already used.
+     *
+     * @param object $collection
+     *
+     * @return string Unique sanitized name of the collection.
+     */
     private function _createCollectionDefaultName($collection)
     {
         $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
@@ -258,12 +258,12 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
     }
 
     /**
-    * Returns a sanitized and unaccentued string for folder or file path.
-    *
-    * @param string $string The string to sanitize.
-    *
-    * @return string The sanitized string to use as a folder or a file name.
-    */
+     * Returns a sanitized and unaccentued string for folder or file path.
+     *
+     * @param string $string The string to sanitize.
+     *
+     * @return string The sanitized string to use as a folder or a file name.
+     */
     private function _sanitizeString($string) {
         $string = trim(strip_tags($string));
         $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
