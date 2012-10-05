@@ -30,6 +30,7 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
         'admin_append_to_plugin_uninstall_message',
         'config_form',
         'config',
+        'after_insert_collection',
         'define_routes',
     );
 
@@ -114,6 +115,23 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
             $collection_names[$collection->id] = $this->_sanitizeString(trim($post[$id], ' /\\'));
         }
         set_option('clean_url_collection_shortnames', serialize($collection_names));
+    }
+
+    /**
+     * Update routes with a default name for the new collection.
+     *
+     * @param object $collection
+     *
+     * @return void.
+     */
+    public function hookAfterInsertCollection($collection)
+    {
+        // Create the collection default route.
+        $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
+        if (!isset($collection_names[$collection->id])) {
+            $collection_names[$collection->id] = $this->_createCollectionDefaultName($collection);
+            set_option('clean_url_collection_shortnames', serialize($collection_names));
+        }
     }
 
     /**
