@@ -103,7 +103,7 @@ Based on ItemId of Jim Safley (see [GitHub ItemId][7])
 
 
 [1]: http://www.omeka.org "Omeka.org"
-[2]: https://github.com/Daniel-KM/CleanUrl "GitHub CleanUrl"
+[2]: https://github.com/Daniel-KM/CleanUrl/Issues "GitHub CleanUrl"
 [3]: http://www.cecill.info/licences/Licence_CeCILL_V2-en.html "CeCILL"
 [4]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL"
 [5]: http://github.com/Daniel-KM "Daniel_KM"
