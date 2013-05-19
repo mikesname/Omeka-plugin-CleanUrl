@@ -1,20 +1,10 @@
 <?php
 /**
- * @version $Id$
- * @copyright Daniel Berthereau for École des Ponts ParisTech, 2012
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
- * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @package CleanUrl
- */
-
-/**
  * Allows to have URL like http://example.com/my_collection/dc:identifier.
  *
- * @see README.md
- * @see config_form.php
- *
- * @todo Adds a column 'short_name' to omeka_collections instead of options.
- * @todo Adds tests.
+ * @copyright Daniel Berthereau, 2012-2013
+ * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
+ * @package CleanUrl
  */
 
 /**
@@ -22,15 +12,14 @@
  *
  * @package CleanUrl
  */
-class CleanUrlPlugin extends Omeka_Plugin_Abstract
+class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
         'install',
         'uninstall',
-        'admin_append_to_plugin_uninstall_message',
         'config_form',
         'config',
-        'after_insert_collection',
+        'after_save_collection',
         'define_routes',
     );
 
@@ -39,9 +28,9 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
         'clean_url_collection_shortnames' => NULL,
         'clean_url_collection_path' => '',
         'clean_url_use_generic' => TRUE,
-        'clean_url_generic' => 'item',
+        'clean_url_generic' => 'document',
         'clean_url_generic_path' => '',
-        'clean_url_item_identifier_prefix' => 'item:',
+        'clean_url_item_identifier_prefix' => 'document:',
     );
 
     /**
@@ -49,13 +38,13 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      */
     public function hookInstall()
     {
-        self::_installOptions();
+        $this->_installOptions();
 
         // Set default short names of collection.
         $collection_names = array();
-        // get_collections() is not available in controller.
-        $collections = get_db()->getTable('Collection')->findBy(array(), 10000);
-        foreach ($collections as $collection) {
+        $collections = get_records('Collection', array(), 0);
+        set_loop_records('collections', $collections);
+        foreach (loop('collections') as $collection) {
             $collection_names[$collection->id] = $this->_createCollectionDefaultName($collection);
 
             // Names should be saved immediately to avoid side effects if other
@@ -69,22 +58,7 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      */
     public function hookUninstall()
     {
-        $options = $this->_options;
-        if (!is_array($options)) {
-            return;
-        }
-        foreach ($options as $name => $value) {
-            delete_option($name);
-        }
-    }
-
-    /**
-     * Warns before the uninstallation of the plugin.
-     */
-    public function hookAdminAppendToPluginUninstallMessage()
-    {
-        echo '<p><strong>' . __('Warning') . '</strong>:<br />';
-        echo __('Without this plugin, items will not be accessible with a cleaned URL anymore, but only with the default URL http://example.com/items/show/internal_id.') . '</p>';
+        $this->_uninstallOptions();
     }
 
     /**
@@ -92,10 +66,11 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      */
     public function hookConfigForm()
     {
-        $collections = get_collections(array(), 100000);
+        $collections = get_records('Collection', array(), 0);
+        set_loop_records('collections', $collections);
         $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
 
-        include('config_form.php');
+        require 'config_form.php';
     }
 
     /**
@@ -103,8 +78,10 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      *
      * @param array Options set in the config form.
      */
-    public function hookConfig($post)
+    public function hookConfig($args)
     {
+        $post = $args['post'];
+
         // Save settings.
         set_option('clean_url_use_collection', (int) (boolean) $post['clean_url_use_collection']);
         set_option('clean_url_collection_path', $this->_sanitizeString(trim($post['clean_url_collection_path'], ' /\\')));
@@ -113,10 +90,10 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
         set_option('clean_url_generic_path', $this->_sanitizeString(trim($post['clean_url_generic_path'], ' /\\')));
         set_option('clean_url_item_identifier_prefix', $this->_sanitizeString($post['clean_url_item_identifier_prefix']));
 
-        // get_collections() is not available in controller.
-        $collections = get_db()->getTable('Collection')->findBy(array(), 10000);
+        $collections = get_records('Collection', array(), 0);
+        set_loop_records('collections', $collections);
         $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-        foreach ($collections as $collection) {
+        foreach (loop('collections') as $collection) {
             $id = 'clean_url_collection_shortname_' . $collection->id;
             $collection_names[$collection->id] = $this->_sanitizeString(trim($post[$id], ' /\\'));
         }
@@ -124,14 +101,14 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
     }
 
     /**
-     * Update routes with a default name for the new collection.
-     *
-     * @param object $collection
+     * Updates routes with a default name for the new collection.
      *
      * @return void.
      */
-    public function hookAfterInsertCollection($collection)
+    public function hookAfterSaveCollection($args)
     {
+        $collection = $args['record'];
+
         // Create the collection default route.
         $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
         if (!isset($collection_names[$collection->id])) {
@@ -145,8 +122,10 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
      *
      * @todo Rechecks performance of routes definition.
      */
-    public function hookDefineRoutes($router)
+    public function hookDefineRoutes($args)
     {
+        $router = $args['router'];
+
         if (is_admin_theme()) {
             return;
         }
@@ -157,9 +136,9 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
             $collection_path = get_option('clean_url_collection_path');
             $collection_path = ($collection_path) ? $collection_path . '/' : '';
             $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-            // get_collections() is not available in controller.
-            $collections = get_db()->getTable('Collection')->findBy(array(), 10000);
-            foreach ($collections as $collection) {
+            $collections = get_records('Collection', array(), 0);
+            set_loop_records('collections', $collections);
+            foreach (loop('collections') as $collection) {
                 // Add the full url.
                 $router->addRoute('cleanUrl_collection_route_' . $collection->id, new Zend_Controller_Router_Route(
                     $collection_path . $collection_names[$collection->id] . '/:dc-identifier',
@@ -271,7 +250,7 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
         }
 
         // Default name is the first word of the collection name.
-        $default_name = trim(strtok(trim($collection->name), " \n\r\t"));
+        $default_name = trim(strtok(trim(metadata($collection, array('Dublin Core', 'Title'))), " \n\r\t"));
 
         // If this name is already used, the id is added until name is unique.
         While (in_array($default_name, $collection_names)) {
@@ -298,7 +277,3 @@ class CleanUrlPlugin extends Omeka_Plugin_Abstract
         return preg_replace('/_+/', '_', $string);
     }
 }
-
-/** Installation of the plugin. */
-$cleanUrl = new CleanUrlPlugin();
-$cleanUrl->setUp();

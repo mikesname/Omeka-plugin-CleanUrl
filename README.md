@@ -14,7 +14,7 @@ A main path can be added before collection names, as "collections" or "library":
 http://example.com/main_path/my_collection/dc:identifier.
 
 A generic and persistent url for all items can be used too, for example
-http://example.com/record/dc:identifier.
+http://example.com/document/dc:identifier.
 
 For more information on Omeka, see [Omeka][1].
 
@@ -44,9 +44,8 @@ See online issues on [GitHub][2].
 License
 -------
 
-This plugin is published with a double licence:
-
-### [CeCILL][3]
+This plugin is published under the [CeCILL v2][3] licence, compatible with
+[GNU/GPL][4].
 
 In consideration of access to the source code and the rights to copy,
 modify and redistribute granted by the license, users are provided only
@@ -66,46 +65,29 @@ security. This Agreement may be freely reproduced and published,
 provided it is not altered, and that no provisions are either added or
 removed herefrom.
 
-### [GNU/GPL][4]
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 3 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
 
 Contact
 -------
 
 Current maintainers:
 
-* Daniel Berthereau (see [Daniel_KM][5])
+* Daniel Berthereau (see [Daniel-KM][5])
 
-First version of this plugin has been built for École des Ponts ParisTech
-(see [ENPC][6]).
+First version of this plugin has been built for [École des Ponts ParisTech][6].
 
 
 Copyright
 ---------
 
-* Copyright Daniel Berthereau for École des Ponts ParisTech, 2012
+* Copyright Daniel Berthereau, 2012-2013
 
 Based on ItemId of Jim Safley (see [GitHub ItemId][7])
 
 
 [1]: http://www.omeka.org "Omeka.org"
 [2]: https://github.com/Daniel-KM/CleanUrl/Issues "GitHub CleanUrl"
-[3]: http://www.cecill.info/licences/Licence_CeCILL_V2-en.html "CeCILL"
-[4]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL"
-[5]: http://github.com/Daniel-KM "Daniel_KM"
+[3]: http://www.cecill.info/licences/Licence_CeCILL_V2-en.html "CeCILL v2"
+[4]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL v3"
+[5]: http://github.com/Daniel-KM "Daniel Berthereau"
 [6]: http://bibliotheque.enpc.fr "École des Ponts ParisTech"
 [7]: https://github.com/jimsafley/ItemId "GitHub ItemId"

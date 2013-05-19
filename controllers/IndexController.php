@@ -1,25 +1,17 @@
 <?php
 /**
- * @version $Id$
- * @copyright Daniel Berthereau for École des Ponts ParisTech, 2012
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
- * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @package CleanUrl
- */
-
-/**
  * The plugin controller for index pages.
  *
  * @package CleanUrl
  */
-class CleanUrl_IndexController extends Omeka_Controller_Action
+class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 {
     /**
-    * Route a clean url of an item to the default url.
+    * Routes a clean url of an item to the default url.
     */
     public function routeAction()
     {
-        $db = $this->getDb();
+        $db = get_db();
 
         // Identifier to check (use of ordered placeholders).
         $dc_identifier = $this->_getParam('dc-identifier');
