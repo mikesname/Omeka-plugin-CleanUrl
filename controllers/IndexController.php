@@ -15,7 +15,10 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // Identifier to check (use of ordered placeholders).
         $dc_identifier = $this->_getParam('dc-identifier');
-        $bind = array(get_option('clean_url_item_identifier_prefix') . $dc_identifier);
+        $bind = array();
+        $bind[] = get_option('clean_url_item_identifier_prefix') . $dc_identifier;
+        // Check with a space between prefix and identifier too.
+        $bind[] = get_option('clean_url_item_identifier_prefix') . ' ' . $dc_identifier;
 
         // Checks if url contains generic or true collection.
         $collection_id = $this->_getParam('collection_id');
@@ -36,7 +39,8 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
                     ON elements.element_set_id = element_sets.id
             WHERE element_sets.name = 'Dublin Core'
                 AND elements.name = 'Identifier'
-                AND element_texts.text = ?
+                AND (element_texts.text = ?
+                    OR element_texts.text = ?)
                 $sql_collection
             LIMIT 1
         ";
@@ -45,7 +49,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // If no identifier exists, the plugin uses the item id directly.
         if (!$id) {
             // Checks directly the item id.
-            $item = get_item_by_id($dc_identifier);
+            $item = get_record_by_id('item', $dc_identifier);
             if (!$item
                     // Checks if the item belongs to the collection, except for generic.
                     || ($collection_id && ($item->collection_id != $collection_id))
