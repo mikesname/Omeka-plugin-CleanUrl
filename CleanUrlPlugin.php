@@ -1,16 +1,16 @@
 <?php
 /**
+ * Clean Url
+ *
  * Allows to have URL like http://example.com/my_collection/dc:identifier.
  *
  * @copyright Daniel Berthereau, 2012-2013
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
- * @package CleanUrl
+ * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
 /**
- * Contains code used to integrate the plugin into Omeka.
- *
- * @package CleanUrl
+ * The Clean Url plugin.
+ * @package Omeka\Plugins\CleanUrl
  */
 class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 {
@@ -250,7 +250,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         // Default name is the first word of the collection name.
-        $default_name = trim(strtok(trim(metadata($collection, array('Dublin Core', 'Title'))), " \n\r\t"));
+        $title = $collection->getElementTexts('Dublin Core', 'Title');
+        $title = empty($title) ? '' : $title[0]->text;
+        $default_name = trim(strtok(trim($title), " \n\r\t"));
 
         // If this name is already used, the id is added until name is unique.
         While (in_array($default_name, $collection_names)) {
@@ -267,10 +269,11 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      *
      * @return string The sanitized string to use as a folder or a file name.
      */
-    private function _sanitizeString($string) {
+    private function _sanitizeString($string)
+    {
         $string = trim(strip_tags($string));
         $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
-        $string = preg_replace('#\&([A-Za-z])(?:uml|circ|tilde|acute|grave|cedil|ring)\;#', '\1', $string);
+        $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml)\;#', '\1', $string);
         $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
         $string = preg_replace('#\&[^;]+\;#', '_', $string);
         $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:]/', '_', $string);
