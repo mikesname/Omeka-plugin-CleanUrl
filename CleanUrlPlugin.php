@@ -89,7 +89,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         set_option('clean_url_use_generic', (int) (boolean) $post['clean_url_use_generic']);
         set_option('clean_url_generic', $this->_sanitizeString($post['clean_url_generic']));
         set_option('clean_url_generic_path', $this->_sanitizeString(trim($post['clean_url_generic_path'], ' /\\')));
-        set_option('clean_url_item_identifier_prefix', $this->_sanitizeString($post['clean_url_item_identifier_prefix']));
+        set_option('clean_url_item_identifier_prefix', $this->_sanitizePrefix($post['clean_url_item_identifier_prefix']));
         set_option('clean_url_case_insensitive', (int) (boolean) $post['clean_url_case_insensitive']);
 
         $collections = get_records('Collection', array(), 0);
@@ -273,12 +273,39 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      */
     private function _sanitizeString($string)
     {
+        return $this->_sanitizeAnyString($string, '');
+    }
+
+    /**
+      * Returns a sanitized and unaccentued string for prefix.
+     *
+     * Difference with default sanitization is that space is allowed.
+     *
+     * @param string $string The string to sanitize.
+     *
+     * @return string The sanitized string to use as a prefix.
+     */
+    private function _sanitizePrefix($string)
+    {
+        return $this->_sanitizeAnyString($string, ' ');
+    }
+
+    /**
+     * Returns a sanitized and unaccentued string for folder or file path.
+     *
+     * @param string $string The string to sanitize.
+     * @param string $space Add space as an allowed characters.
+     *
+     * @return string The sanitized string to use as a folder or a file name.
+     */
+    private function _sanitizeAnyString($string, $space = '')
+    {
         $string = trim(strip_tags($string));
         $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
         $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml)\;#', '\1', $string);
         $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
         $string = preg_replace('#\&[^;]+\;#', '_', $string);
-        $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:]/', '_', $string);
+        $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:' . $space . ']/', '_', $string);
         return preg_replace('/_+/', '_', $string);
     }
 }
