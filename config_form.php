@@ -96,3 +96,17 @@
         </div>
     </div>
 </fieldset>
+<fieldset id="fieldset-generic"><legend><?php echo __('Insensitive case'); ?></legend>
+    <div class="field">
+        <label for="clean_url_case_insensitive">
+            <?php echo __('Allow case insensitive identifier');?>
+        </label>
+        <div class="inputs">
+            <?php echo get_view()->formCheckbox('clean_url_case_insensitive', TRUE, array('checked' => (boolean) get_option('clean_url_case_insensitive')));?>
+            <p class="explanation">
+                <?php echo __('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.') . '<br />';?>
+                <?php echo __('Furthermore, it can slow server responses, unless you add an index for lower texts.') . '<br />';?>
+            </p>
+        </div>
+    </div>
+</fieldset>

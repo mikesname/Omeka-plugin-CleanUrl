@@ -28,22 +28,46 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $bind[] = $collection_id;
         }
 
-        $sql = "
-            SELECT items.id
-            FROM {$db->Item} items
-                JOIN {$db->ElementText} element_texts
-                    ON items.id = element_texts.record_id
-                JOIN {$db->Element} elements
-                    ON element_texts.element_id = elements.id
-                JOIN {$db->ElementSet} element_sets
-                    ON elements.element_set_id = element_sets.id
-            WHERE element_sets.name = 'Dublin Core'
-                AND elements.name = 'Identifier'
-                AND (element_texts.text = ?
-                    OR element_texts.text = ?)
-                $sql_collection
-            LIMIT 1
-        ";
+        // Check only lowercase if needed.
+        if (get_option('clean_url_case_insensitive') == '1') {
+            $bind[0] = strtolower($bind[0]);
+            $bind[1] = strtolower($bind[1]);
+
+            $sql = "
+                SELECT items.id
+                FROM {$db->Item} items
+                    JOIN {$db->ElementText} element_texts
+                        ON items.id = element_texts.record_id
+                    JOIN {$db->Element} elements
+                        ON element_texts.element_id = elements.id
+                    JOIN {$db->ElementSet} element_sets
+                        ON elements.element_set_id = element_sets.id
+                WHERE element_sets.name = 'Dublin Core'
+                    AND elements.name = 'Identifier'
+                    AND (LOWER(element_texts.text) = ?
+                        OR LOWER(element_texts.text) = ?)
+                    $sql_collection
+                LIMIT 1
+            ";
+        }
+        else {
+            $sql = "
+                SELECT items.id
+                FROM {$db->Item} items
+                    JOIN {$db->ElementText} element_texts
+                        ON items.id = element_texts.record_id
+                    JOIN {$db->Element} elements
+                        ON element_texts.element_id = elements.id
+                    JOIN {$db->ElementSet} element_sets
+                        ON elements.element_set_id = element_sets.id
+                WHERE element_sets.name = 'Dublin Core'
+                    AND elements.name = 'Identifier'
+                    AND (element_texts.text = ?
+                        OR element_texts.text = ?)
+                    $sql_collection
+                LIMIT 1
+            ";
+        }
         $id = $db->fetchOne($sql, $bind);
 
         // If no identifier exists, the plugin uses the item id directly.

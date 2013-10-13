@@ -31,6 +31,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_generic' => 'document',
         'clean_url_generic_path' => '',
         'clean_url_item_identifier_prefix' => 'document:',
+        'clean_url_case_insensitive' => FALSE,
     );
 
     /**
@@ -89,6 +90,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         set_option('clean_url_generic', $this->_sanitizeString($post['clean_url_generic']));
         set_option('clean_url_generic_path', $this->_sanitizeString(trim($post['clean_url_generic_path'], ' /\\')));
         set_option('clean_url_item_identifier_prefix', $this->_sanitizeString($post['clean_url_item_identifier_prefix']));
+        set_option('clean_url_case_insensitive', (int) (boolean) $post['clean_url_case_insensitive']);
 
         $collections = get_records('Collection', array(), 0);
         set_loop_records('collections', $collections);
@@ -118,7 +120,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     }
 
     /**
-     * Defines public routes "main_path / my_collection|generic / dc:identifier".
+     * Defines public routes "main_path / my_collection | generic / dc:identifier".
      *
      * @todo Rechecks performance of routes definition.
      */
@@ -131,7 +133,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         // For performance and security reasons, one route is added for each
-        // collection instead of one main route.
+        // collection instead of one jokerised main route.
         if (get_option('clean_url_use_collection') == '1') {
             $collection_path = get_option('clean_url_collection_path');
             $collection_path = ($collection_path) ? $collection_path . '/' : '';
