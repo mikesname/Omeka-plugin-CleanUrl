@@ -16,22 +16,22 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
         'install',
+        'upgrade',
         'uninstall',
         'config_form',
         'config',
-        'after_save_collection',
         'define_routes',
     );
 
     protected $_options = array(
-        'clean_url_use_collection' => TRUE,
-        'clean_url_collection_shortnames' => NULL,
-        'clean_url_collection_path' => '',
-        'clean_url_use_generic' => TRUE,
-        'clean_url_generic' => 'document',
-        'clean_url_generic_path' => '',
-        'clean_url_item_identifier_prefix' => 'document:',
+        'clean_url_identifier_prefix' => 'document:',
         'clean_url_case_insensitive' => FALSE,
+        'clean_url_main_path' => '',
+        'clean_url_collection_generic' => '',
+        'clean_url_item_url' => 'generic',
+        'clean_url_item_generic' => 'document',
+        'clean_url_file_url' => 'generic',
+        'clean_url_file_generic' => 'file',
     );
 
     /**
@@ -40,17 +40,32 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInstall()
     {
         $this->_installOptions();
+    }
 
-        // Set default short names of collection.
-        $collection_names = array();
-        $collections = get_records('Collection', array(), 0);
-        set_loop_records('collections', $collections);
-        foreach (loop('collections') as $collection) {
-            $collection_names[$collection->id] = $this->_createCollectionDefaultName($collection);
+    /**
+     * Upgrades the plugin.
+     */
+    public function hookUpgrade($args)
+    {
+        $oldVersion = $args['old_version'];
+        $newVersion = $args['new_version'];
 
-            // Names should be saved immediately to avoid side effects if other
-            // similar names are created.
-            set_option('clean_url_collection_shortnames', serialize($collection_names));
+        if (version_compare($oldVersion, '2.4', '<')) {
+            set_option('clean_url_identifier_prefix', get_option('clean_url_item_identifier_prefix'));
+            delete_option('clean_url_item_identifier_prefix');
+            set_option('clean_url_case_insensitive', get_option('clean_url_case_insensitive'));
+            set_option('clean_url_main_path', get_option('clean_url_generic_path'));
+            delete_option('clean_url_generic_path');
+            delete_option('clean_url_use_collection');
+            delete_option('clean_url_collection_shortnames');
+            set_option('clean_url_collection_generic', get_option('clean_url_collection_path'));
+            delete_option('clean_url_collection_path');
+            set_option('clean_url_item_url', get_option('clean_url_use_generic') ? 'generic' : 'collection');
+            delete_option('clean_url_use_generic');
+            set_option('clean_url_item_generic', get_option('clean_url_generic'));
+            delete_option('clean_url_generic');
+            set_option('clean_url_file_url', $this->_options['clean_url_file_url']);
+            set_option('clean_url_file_generic', $this->_options['clean_url_file_generic']);
         }
     }
 
@@ -67,10 +82,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookConfigForm()
     {
-        $collections = get_records('Collection', array(), 0);
-        set_loop_records('collections', $collections);
-        $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-
         require 'config_form.php';
     }
 
@@ -84,39 +95,14 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $post = $args['post'];
 
         // Save settings.
-        set_option('clean_url_use_collection', (int) (boolean) $post['clean_url_use_collection']);
-        set_option('clean_url_collection_path', $this->_sanitizeString(trim($post['clean_url_collection_path'], ' /\\')));
-        set_option('clean_url_use_generic', (int) (boolean) $post['clean_url_use_generic']);
-        set_option('clean_url_generic', $this->_sanitizeString($post['clean_url_generic']));
-        set_option('clean_url_generic_path', $this->_sanitizeString(trim($post['clean_url_generic_path'], ' /\\')));
-        set_option('clean_url_item_identifier_prefix', $this->_sanitizePrefix($post['clean_url_item_identifier_prefix']));
+        set_option('clean_url_identifier_prefix', $this->_sanitizePrefix($post['clean_url_identifier_prefix']));
         set_option('clean_url_case_insensitive', (int) (boolean) $post['clean_url_case_insensitive']);
-
-        $collections = get_records('Collection', array(), 0);
-        set_loop_records('collections', $collections);
-        $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-        foreach (loop('collections') as $collection) {
-            $id = 'clean_url_collection_shortname_' . $collection->id;
-            $collection_names[$collection->id] = $this->_sanitizeString(trim($post[$id], ' /\\'));
-        }
-        set_option('clean_url_collection_shortnames', serialize($collection_names));
-    }
-
-    /**
-     * Updates routes with a default name for the new collection.
-     *
-     * @return void.
-     */
-    public function hookAfterSaveCollection($args)
-    {
-        $collection = $args['record'];
-
-        // Create the collection default route.
-        $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-        if (!isset($collection_names[$collection->id])) {
-            $collection_names[$collection->id] = $this->_createCollectionDefaultName($collection);
-            set_option('clean_url_collection_shortnames', serialize($collection_names));
-        }
+        set_option('clean_url_main_path', $this->_sanitizeString(trim($post['clean_url_main_path'], ' /\\')));
+        set_option('clean_url_collection_generic', $this->_sanitizeString(trim($post['clean_url_collection_generic'], ' /\\')));
+        set_option('clean_url_item_url', $post['clean_url_item_url']);
+        set_option('clean_url_item_generic', $this->_sanitizeString(trim($post['clean_url_item_generic'], ' /\\')));
+        set_option('clean_url_file_url', $post['clean_url_file_url']);
+        set_option('clean_url_file_generic', $this->_sanitizeString(trim($post['clean_url_file_generic'], ' /\\')));
     }
 
     /**
@@ -132,136 +118,211 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             return;
         }
 
+        $main_path = get_option('clean_url_main_path');
+        $main_path = $main_path ? $main_path . '/' : '';
+
+        $collection_generic = get_option('clean_url_collection_generic');
+        $collection_generic = $collection_generic ? $collection_generic . '/' : '';
+
         // For performance and security reasons, one route is added for each
         // collection instead of one jokerised main route.
-        if (get_option('clean_url_use_collection') == '1') {
-            $collection_path = get_option('clean_url_collection_path');
-            $collection_path = ($collection_path) ? $collection_path . '/' : '';
-            $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-            $collections = get_records('Collection', array(), 0);
-            set_loop_records('collections', $collections);
-            foreach (loop('collections') as $collection) {
-                // Add the full url.
-                $router->addRoute('cleanUrl_collection_route_' . $collection->id, new Zend_Controller_Router_Route(
-                    $collection_path . $collection_names[$collection->id] . '/:dc-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route',
-                        'collection_id' => $collection->id,
-                )));
+        // TODO Recheck in order to simplify or let.
+        $collections = get_records('Collection', array(), 0);
+        foreach ($collections as $collection) {
+            $view = get_view();
+            $collection_identifier = $view->recordIdentifier($collection);
+            if (empty($collection_identifier)) {
+                continue;
+            }
 
-                // Add a route for the collection show view.
-                $router->addRoute('cleanUrl_collection_' . $collection->id, new Zend_Controller_Router_Route(
-                    $collection_path . $collection_names[$collection->id],
+            // Add a route for the collection show view.
+            $route = $main_path . $collection_generic . $collection_identifier;
+            $router->addRoute('cleanUrl_collection_' . $collection->id, new Zend_Controller_Router_Route(
+                $route,
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'collection-show',
+                    'collection_id' => $collection->id,
+            )));
+
+            // Add a lowercase route to prevent some practical issues.
+            if ($route != strtolower($route)) {
+                $router->addRoute('cleanUrl_collection_' . $collection->id . '_lower', new Zend_Controller_Router_Route(
+                    strtolower($route),
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'collection-show',
                         'collection_id' => $collection->id,
                 )));
+            }
 
-                // Add a lowercase route for both to prevent some pratical issues.
-                $lowercase = strtolower($collection_path . $collection_names[$collection->id]);
-                if ($lowercase != ($collection_path . $collection_names[$collection->id])) {
-                    $router->addRoute('cleanUrl_collection_route_' . $collection->id . '_lower', new Zend_Controller_Router_Route(
-                        $lowercase . '/:dc-identifier',
+            // Add a collection route for items.
+            if (get_option('clean_url_item_url') == 'collection') {
+                $route = $main_path . $collection_identifier;
+                $router->addRoute('cleanUrl_collection_' . $collection->id . '_item', new Zend_Controller_Router_Route(
+                    $route . '/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-item',
+                        'collection_id' => $collection->id,
+                )));
+
+                // Add a lowercase route to prevent some practical issues.
+                if ($route != strtolower($route)) {
+                    $router->addRoute('cleanUrl_collection_' . $collection->id . '_item_lower', new Zend_Controller_Router_Route(
+                        strtolower($route) . '/:dc-identifier',
                         array(
                             'module' => 'clean-url',
                             'controller' => 'index',
-                            'action' => 'route',
+                            'action' => 'route-collection-item',
                             'collection_id' => $collection->id,
                     )));
+                }
+            }
 
-                    $router->addRoute('cleanUrl_collection_' . $collection->id . '_lower', new Zend_Controller_Router_Route(
-                        $lowercase,
+            // Add a collection route for files.
+            if (get_option('clean_url_file_url') == 'collection') {
+                $route = $main_path . $collection_identifier;
+                $router->addRoute('cleanUrl_collection_' . $collection->id . '_file', new Zend_Controller_Router_Route(
+                    $route . '/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-file',
+                        'collection_id' => $collection->id,
+                )));
+
+                // Add a lowercase route to prevent some practical issues.
+                if ($route != strtolower($route)) {
+                    $router->addRoute('cleanUrl_collection_' . $collection->id . '_file_lower', new Zend_Controller_Router_Route(
+                        strtolower($route) . '/:dc-identifier',
                         array(
                             'module' => 'clean-url',
                             'controller' => 'index',
-                            'action' => 'collection-show',
+                            'action' => 'route-collection-file',
+                            'collection_id' => $collection->id,
+                    )));
+                }
+            }
+            // Add a collection / item route for files.
+            elseif (get_option('clean_url_file_url') == 'collection_item') {
+                $route = $main_path . $collection_identifier;
+                $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file', new Zend_Controller_Router_Route(
+                    $route . '/:item-dc-identifier/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-item-file',
+                        'collection_id' => $collection->id,
+                )));
+
+                // Add a lowercase route to prevent some practical issues.
+                if ($route != strtolower($route)) {
+                    $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file_lower', new Zend_Controller_Router_Route(
+                        strtolower($route) . '/:item-dc-identifier/:dc-identifier',
+                        array(
+                            'module' => 'clean-url',
+                            'controller' => 'index',
+                            'action' => 'route-collection-item-file',
                             'collection_id' => $collection->id,
                     )));
                 }
             }
         }
 
-        // Add generic custom routes.
-        if (get_option('clean_url_use_generic') == '1') {
-            $generic_path = get_option('clean_url_generic_path');
-            $generic_path = ($generic_path) ? $generic_path . '/' : '';
-            $prefix = get_option('clean_url_generic');
-            $router->addRoute('cleanUrl_generic_item_dcid', new Zend_Controller_Router_Route(
-                $generic_path . $prefix . '/:dc-identifier',
-                array(
-                    'module' => 'clean-url',
-                    'controller' => 'index',
-                    'action' => 'route',
-                    'collection_id' => NULL,
-            )));
-
-            $router->addRoute('cleanUrl_generic_browse', new Zend_Controller_Router_Route(
-                $generic_path . $prefix,
+        // Add a generic route for items.
+        if (get_option('clean_url_item_url') == 'generic') {
+            $item_generic = get_option('clean_url_item_generic');
+            $route = $main_path . $item_generic;
+            $router->addRoute('cleanUrl_generic_items_browse', new Zend_Controller_Router_Route(
+                $route,
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
                     'action' => 'items-browse',
             )));
+            $router->addRoute('cleanUrl_generic_item', new Zend_Controller_Router_Route(
+                $route . '/:dc-identifier',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-item',
+                    'collection_id' => NULL,
+            )));
 
-            // Add a lowercase route to prevent some pratical issues.
-            $lowercase = strtolower($generic_path . $prefix);
-            if ($lowercase != ($generic_path . $prefix)) {
-                $router->addRoute('cleanUrl_generic_item_dcid_lower', new Zend_Controller_Router_Route(
-                    $lowercase . '/:dc-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route',
-                        'collection_id' => NULL,
-                )));
-
-                $router->addRoute('cleanUrl_generic_browse_lower', new Zend_Controller_Router_Route(
-                    $lowercase,
+            // Add a lowercase route to prevent some practical issues.
+            if ($route != strtolower($route)) {
+                $router->addRoute('cleanUrl_generic_items_browse_lower', new Zend_Controller_Router_Route(
+                    strtolower($route),
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'items-browse',
                 )));
+                $router->addRoute('cleanUrl_generic_item_lower', new Zend_Controller_Router_Route(
+                    strtolower($route) . '/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-item',
+                        'collection_id' => NULL,
+                )));
             }
         }
-    }
 
-    /**
-     * Creates the default short name of a collection.
-     *
-     * Default name is the first word of the collection name. The id is added if
-     * this name is already used.
-     *
-     * @param object $collection
-     *
-     * @return string Unique sanitized name of the collection.
-     */
-    private function _createCollectionDefaultName($collection)
-    {
-        $collection_names = unserialize(get_option('clean_url_collection_shortnames'));
-        if ($collection_names === FALSE) {
-            $collection_names = array();
+        // Add a generic route for files.
+        if (get_option('clean_url_file_url') == 'generic') {
+            $file_generic = get_option('clean_url_file_generic');
+            $route = $main_path . $file_generic;
+            $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
+                $route . '/:dc-identifier',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-file',
+                    'collection_id' => NULL,
+            )));
+
+            // Add a lowercase route to prevent some practical issues.
+            if ($route != strtolower($route)) {
+                $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
+                    strtolower($route) . '/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-file',
+                        'collection_id' => NULL,
+                )));
+            }
         }
-        else {
-            // Remove the current collection id to simplify check.
-            unset($collection_names[$collection->id]);
+        // Add a generic / item route for files.
+        elseif (get_option('clean_url_file_url') == 'generic_item') {
+            $file_generic = get_option('clean_url_file_generic');
+            $route = $main_path . $file_generic;
+            $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(
+                $route . '/:item-dc-identifier/:dc-identifier',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-item-file',
+                    'collection_id' => NULL,
+            )));
+
+            // Add a lowercase route to prevent some practical issues.
+            if ($route != strtolower($route)) {
+                $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
+                    strtolower($route) . '/:item-dc-identifier/:dc-identifier',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-item-file',
+                        'collection_id' => NULL,
+                )));
+            }
         }
-
-        // Default name is the first word of the collection name.
-        $title = $collection->getElementTexts('Dublin Core', 'Title');
-        $title = empty($title) ? '' : $title[0]->text;
-        $default_name = trim(strtok(trim($title), " \n\r\t"));
-
-        // If this name is already used, the id is added until name is unique.
-        While (in_array($default_name, $collection_names)) {
-            $default_name .= '_' . $collection->id;
-        }
-
-        return $this->_sanitizeString($default_name);
     }
 
     /**
