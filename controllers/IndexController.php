@@ -128,7 +128,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _checkCollectionFile($file)
     {
         // Get the item.
-        $item = get_record_by_id('Item', $file->item_id);
+        $item = $file->getItem();
 
         // Check if the found file belongs to the collection.
         if (!empty($this->_collection_id)
@@ -150,7 +150,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _checkItemFile($file)
     {
         // Get the item.
-        $item = get_record_by_id('Item', $file->item_id);
+        $item = $file->getItem();
 
         // Check if the found file belongs to the item.
         if (!empty($this->_item_dc_identifier)) {
@@ -262,7 +262,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // Additional check for item identifier : the file should belong to item.
         // TODO Include this in the query.
-        if (!empty($this->_item_dc_identifier) && $this->_recordType == 'File') {
+        if ($id && !empty($this->_item_dc_identifier) && $this->_recordType == 'File') {
             // Check if the found file belongs to the item.
             $file = get_record_by_id('File', $id);
             if (!$this->_checkItemFile($file)) {

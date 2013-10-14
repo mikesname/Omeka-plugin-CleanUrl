@@ -15,6 +15,8 @@ http://example.com/main_path/my_collection/dc:identifier.
 A generic and persistent url for all items can be used too, for example
 http://example.com/document/dc:identifier.
 
+Clean urls are automatically displayed in public theme.
+
 
 Installation
 ------------
