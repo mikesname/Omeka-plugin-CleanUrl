@@ -32,20 +32,26 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
             if (!$record) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             // Check if the found item belongs to the collection, if any.
             if (!empty($this->_collection_id)
                     && $this->_collection_id != $record->collection_id
                 ) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             $id = $this->_dc_identifier;
         }
 
-        return $this->_forward('show', 'items', 'default', array('id' => $id));
+        return $this->forward('show', 'items', 'default', array(
+            'module' => null,
+            'controller' => 'items',
+            'action' => 'show',
+            'record_type' => 'Item',
+            'id' => $id,
+        ));
     }
 
     /**
@@ -61,13 +67,19 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
             if (!$record) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             $id = $this->_dc_identifier;
         }
 
-        return $this->_forward('show', 'files', 'default', array('id' => $id));
+        return $this->forward('show', 'files', 'default', array(
+            'module' => null,
+            'controller' => 'files',
+            'action' => 'show',
+            'record_type' => 'File',
+            'id' => $id,
+        ));
     }
 
     /**
@@ -99,23 +111,29 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
             if (!$record) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             // Check if the found file belongs to the collection.
             if (!$this->_checkCollectionFile($record)) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             // Check if the found file belongs to the item.
             if (!$this->_checkItemFile($record)) {
-                return $this->_forward('not-found', 'error', 'default');
+                return $this->forward('not-found', 'error', 'default');
             }
 
             $id = $this->_dc_identifier;
         }
 
-        return $this->_forward('show', 'files', 'default', array('id' => $id));
+        return $this->forward('show', 'files', 'default', array(
+            'module' => null,
+            'controller' => 'files',
+            'action' => 'show',
+            'record_type' => 'File',
+            'id' => $id,
+        ));
     }
 
     /**
@@ -275,11 +293,22 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
     public function collectionShowAction()
     {
-        return $this->_forward('show', 'collections', 'default', array('id' => $this->_getParam('collection_id')));
+        return $this->forward('show', 'collections', 'default', array(
+            'module' => null,
+            'controller' => 'collections',
+            'action' => 'show',
+            'record_type' => 'Collection',
+            'id' => $this->_getParam('collection_id'),
+        ));
     }
 
     public function itemsBrowseAction()
     {
-        return $this->_forward('browse', 'items', 'default');
+        return $this->forward('browse', 'items', 'default', array(
+            'module' => null,
+            'controller' => 'items',
+            'action' => 'browse',
+            'record_type' => 'Item',
+        ));
     }
 }
