@@ -82,7 +82,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookConfigForm()
     {
-        require 'config_form.php';
+        echo get_view()->partial(
+            'plugins/clean-url-config-form.php'
+        );
     }
 
     /**

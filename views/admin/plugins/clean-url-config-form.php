@@ -111,7 +111,7 @@
             <?php echo get_view()->formText('clean_url_file_generic', get_option('clean_url_file_generic'), NULL); ?>
             <p class="explanation">
                 <?php echo __('The generic name to use if generic identifier is selected above, for example "file", "record" or "image".'); ?>
-                <?php echo __('Currently, it should be different from the name used for items.'); ?>
+                <?php echo __('In the first case, currently, it should be different from the name used for items.'); ?>
             </p>
         </div>
     </div>
