@@ -12,6 +12,15 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     private $_item_dc_identifier = '';
 
     /**
+     * Initialize the controller.
+     */
+    public function init()
+    {
+        // Reset script paths (will be regenerated in forwarded destination).
+        get_view()->setScriptPath(null);
+    }
+
+    /**
      * Routes a clean url of an item to the default url.
      */
     public function routeItemAction()
