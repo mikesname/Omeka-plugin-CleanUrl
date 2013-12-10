@@ -37,6 +37,9 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
         if (is_string($record)) {
             $record = $this->view->getCurrentRecord($record);
         }
+        if (empty($record)) {
+            return '';
+        }
         if (!($record instanceof Omeka_Record_AbstractRecord)) {
             throw new Omeka_View_Exception(__('Invalid record passed while getting record URL.'));
         }
