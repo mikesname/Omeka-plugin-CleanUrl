@@ -20,6 +20,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'uninstall',
         'config_form',
         'config',
+        'admin_items_browse_simple_each',
         'define_routes',
     );
 
@@ -32,6 +33,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_item_generic' => 'document',
         'clean_url_file_url' => 'generic',
         'clean_url_file_generic' => 'file',
+        'clean_url_display_admin_browse_identifier' => true,
     );
 
     /**
@@ -66,6 +68,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             delete_option('clean_url_generic');
             set_option('clean_url_file_url', $this->_options['clean_url_file_url']);
             set_option('clean_url_file_generic', $this->_options['clean_url_file_generic']);
+            set_option('clean_url_display_admin_browse_identifier', $this->_options['clean_url_display_admin_browse_identifier']);
         }
     }
 
@@ -105,6 +108,20 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         set_option('clean_url_item_generic', $this->_sanitizeString(trim($post['clean_url_item_generic'], ' /\\')));
         set_option('clean_url_file_url', $post['clean_url_file_url']);
         set_option('clean_url_file_generic', $this->_sanitizeString(trim($post['clean_url_file_generic'], ' /\\')));
+        set_option('clean_url_display_admin_browse_identifier', (int) (boolean) $post['clean_url_display_admin_browse_identifier']);
+    }
+
+    /**
+     * Add the identifiant in the list.
+     */
+    public function hookAdminItemsBrowseSimpleEach($args)
+    {
+        if (get_option('clean_url_display_admin_browse_identifier')) {
+            $view = $args['view'];
+            $item = $args['item'];
+            $identifier =  $view->recordIdentifier($item);
+            echo '<span>' . ($identifier ?: '<strong>' . __('No document identifier.') . '</strong>') . '</span>';
+       }
     }
 
     /**

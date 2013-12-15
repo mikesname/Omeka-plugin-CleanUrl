@@ -7,10 +7,12 @@
 </p>
 <fieldset id="fieldset-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
     <div class="field">
-        <label for="clean_url_identifier_prefix">
-            <?php echo __('Prefix of identifiers to use'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_identifier_prefix">
+                <?php echo __('Prefix of identifiers to use'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formText('clean_url_identifier_prefix', get_option('clean_url_identifier_prefix'), NULL); ?>
             <p class="explanation">
                 <?php echo __('Urls are built with the sanitized Dublin Core identifier with the selected prefix, for example "item:", "record:" or "doc =". Let empty to use simply the first identifier.') . '<br />'; ?>
@@ -19,10 +21,12 @@
         </div>
     </div>
     <div class="field">
-        <label for="clean_url_case_insensitive">
-            <?php echo __('Allow case insensitive identifier'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_case_insensitive">
+                <?php echo __('Allow case insensitive identifier'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formCheckbox('clean_url_case_insensitive', TRUE, array('checked' => (boolean) get_option('clean_url_case_insensitive'))); ?>
             <p class="explanation">
                 <?php echo __('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.') . '<br />'; ?>
@@ -33,10 +37,12 @@
 </fieldset>
 <fieldset id="fieldset-main-path"><legend><?php echo __('Main base path'); ?></legend>
     <div class="field">
-        <label for="clean_url_main_path">
-            <?php echo __('Main path to add'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_main_path">
+                <?php echo __('Main path to add'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formText('clean_url_main_path', get_option('clean_url_main_path'), NULL); ?>
             <p class="explanation">
                 <?php echo __('The main path to add in the beginning of the url, for example "collections", "library" or "archives".'); ?>
@@ -47,10 +53,12 @@
 </fieldset>
 <fieldset id="fieldset-collections"><legend><?php echo __('Collections'); ?></legend>
     <div class="field">
-        <label for="clean_url_collection_generic">
-            <?php echo __('Generic name to add before collection identifier'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_collection_generic">
+                <?php echo __('Generic name to add before collection identifier'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formText('clean_url_collection_generic', get_option('clean_url_collection_generic'), NULL); ?>
             <p class="explanation">
                 <?php echo __('This main path is added before the collection name, for example "my_collections".'); ?>
@@ -61,10 +69,12 @@
 </fieldset>
 <fieldset id="fieldset-items"><legend><?php echo __('Items'); ?></legend>
     <div class="field">
-        <label for="clean_url_item_url">
-            <?php echo __('Url of items'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_item_url">
+                <?php echo __('Url of items'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formRadio('clean_url_item_url', get_option('clean_url_item_url'), NULL, array(
                     'generic' => '/ generic / dc:identifier',
                     'collection' => '/ collection identifier / dc:identifier',
@@ -75,10 +85,12 @@
         </div>
     </div>
     <div class="field">
-        <label for="clean_url_item_generic">
-            <?php echo __('Generic name to add before item identifier'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_item_generic">
+                <?php echo __('Generic name to add before item identifier'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formText('clean_url_item_generic', get_option('clean_url_item_generic'), NULL); ?>
             <p class="explanation">
                 <?php echo __('The generic name to use if generic identifier is selected above, for example "item", "record" or "doc".'); ?>
@@ -88,10 +100,12 @@
 </fieldset>
 <fieldset id="fieldset-files"><legend><?php echo __('Files'); ?></legend>
     <div class="field">
-        <label for="clean_url_files_url">
-            <?php echo __('Url of files'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_files_url">
+                <?php echo __('Url of files'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formRadio('clean_url_file_url', get_option('clean_url_file_url'), NULL, array(
                     'generic' => '/ generic / dc:identifier',
                     'generic_item' => '/ generic / item identifier / dc:identifier',
@@ -104,14 +118,31 @@
         </div>
     </div>
     <div class="field">
-        <label for="clean_url_file_generic">
-            <?php echo __('Generic name to add before file identifier'); ?>
-        </label>
-        <div class="inputs">
+        <div class="two columns alpha">
+            <label for="clean_url_file_generic">
+                <?php echo __('Generic name to add before file identifier'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
             <?php echo get_view()->formText('clean_url_file_generic', get_option('clean_url_file_generic'), NULL); ?>
             <p class="explanation">
                 <?php echo __('The generic name to use if generic identifier is selected above, for example "file", "record" or "image".'); ?>
                 <?php echo __('In the first case, currently, it should be different from the name used for items.'); ?>
+            </p>
+        </div>
+    </div>
+</fieldset>
+<fieldset id="fieldset-display"><legend><?php echo __('Display'); ?></legend>
+    <div class="field">
+        <div class="two columns alpha">
+            <label for="clean_url_display_admin_browse_identifier">
+                <?php echo __('Display identifier in admin items/browse'); ?>
+            </label>
+        </div>
+        <div class='inputs five columns omega'>
+            <?php echo get_view()->formCheckbox('clean_url_display_admin_browse_identifier', TRUE, array('checked' => (boolean) get_option('clean_url_display_admin_browse_identifier'))); ?>
+            <p class="explanation">
+                <?php echo __('If checked, the identifier of each item will be displayed in the admin items browse page.'); ?>
             </p>
         </div>
     </div>
