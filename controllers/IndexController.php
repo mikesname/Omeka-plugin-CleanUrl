@@ -182,7 +182,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // Check if the found file belongs to the item.
         if (!empty($this->_item_dc_identifier)) {
             // Get the item identifier.
-            $item_identifier = $this->view->RecordIdentifier($item);
+            $item_identifier = $this->view->getRecordIdentifier($item);
 
             // Check identifier and id of item.
             if (strtolower($this->_item_dc_identifier) != strtolower($item_identifier)

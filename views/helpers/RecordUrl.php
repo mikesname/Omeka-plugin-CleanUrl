@@ -107,7 +107,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
         switch (get_class($record)) {
             case 'Collection':
                 if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->recordIdentifier($record);
+                    $identifier = $this->view->getRecordIdentifier($record);
                     if (empty($identifier)) {
                         return '';
                     }
@@ -124,7 +124,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
 
             case 'Item':
                 if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->recordIdentifier($record);
+                    $identifier = $this->view->getRecordIdentifier($record);
                     if (empty($identifier)) {
                         $identifier = $record->id;
                     }
@@ -140,7 +140,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
 
                         case 'collection':
                             $collection = $record->getCollection();
-                            $collection_identifier = $this->view->recordIdentifier($collection);
+                            $collection_identifier = $this->view->getRecordIdentifier($collection);
                             if (!$collection_identifier) {
                                 return '';
                             }
@@ -151,7 +151,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
 
             case 'File':
                 if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->recordIdentifier($record);
+                    $identifier = $this->view->getRecordIdentifier($record);
                     if (empty($identifier)) {
                         $identifier = $record->id;
                     }
@@ -170,7 +170,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
                             $generic = $generic ?  '/' . $generic : '';
 
                             $item = $record->getItem();
-                            $item_identifier = $this->view->recordIdentifier($item);
+                            $item_identifier = $this->view->getRecordIdentifier($item);
                             if (!$item_identifier) {
                                 $item_identifier = $item->id;
                             }
@@ -179,7 +179,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
                         case 'collection':
                             $item = $record->getItem();
                             $collection = $item->getCollection();
-                            $collection_identifier = $this->view->recordIdentifier($collection);
+                            $collection_identifier = $this->view->getRecordIdentifier($collection);
                             if (!$collection_identifier) {
                                 return '';
                             }
@@ -188,11 +188,11 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
                         case 'collection_item':
                             $item = $record->getItem();
                             $collection = $item->getCollection();
-                            $collection_identifier = $this->view->recordIdentifier($collection);
+                            $collection_identifier = $this->view->getRecordIdentifier($collection);
                             if (!$collection_identifier) {
                                 return '';
                             }
-                            $item_identifier = $this->view->recordIdentifier($item);
+                            $item_identifier = $this->view->getRecordIdentifier($item);
                             if (!$item_identifier) {
                                 $item_identifier = $item->id;
                             }

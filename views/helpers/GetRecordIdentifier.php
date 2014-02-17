@@ -1,12 +1,12 @@
 <?php
 /**
- * Clean Url Record Identifier
+ * Clean Url Get Record Identifier
  */
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_RecordIdentifier extends Zend_View_Helper_Abstract
+class Omeka_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
 {
     /**
      * Return the identifier of a record, if any. It can be sanitized.
@@ -19,7 +19,7 @@ class Omeka_View_Helper_RecordIdentifier extends Zend_View_Helper_Abstract
      *
      * @todo Use one query.
      */
-    public function recordIdentifier($record, $sanitize = true)
+    public function getRecordIdentifier($record, $sanitize = true)
     {
         // Get the current record from the view if passed as a string.
         if (is_string($record)) {

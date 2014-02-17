@@ -119,8 +119,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         if (get_option('clean_url_display_admin_browse_identifier')) {
             $view = $args['view'];
             $item = $args['item'];
-            $identifier =  $view->recordIdentifier($item);
-            echo '<span>' . ($identifier ?: '<strong>' . __('No document identifier.') . '</strong>') . '</span>';
+            $identifier =  $view->getRecordIdentifier($item);
+            echo '<div><span>' . ($identifier ?: '<strong>' . __('No document identifier.') . '</strong>') . '</span></div>';
        }
     }
 
@@ -149,7 +149,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $collections = get_records('Collection', array(), 0);
         foreach ($collections as $collection) {
             $view = get_view();
-            $collection_identifier = $view->recordIdentifier($collection);
+            $collection_identifier = $view->getRecordIdentifier($collection);
             if (empty($collection_identifier)) {
                 continue;
             }
