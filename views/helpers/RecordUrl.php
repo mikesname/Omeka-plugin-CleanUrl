@@ -24,6 +24,7 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
      * @uses Omeka_Record_AbstractRecord::getCurrentRecord()
      * @uses Omeka_Record_AbstractRecord::getRecordUrl()
      * @uses Omeka_View_Helper_Url::url()
+     * @uses Omeka_View_Helper_GetRecordFullIdentifier::getRecordFullIdentifier()
      * @throws Omeka_View_Exception
      * @param Omeka_Record_AbstractRecord|string $record
      * @param string|null $action
@@ -104,105 +105,17 @@ class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
             return '';
         }
 
-        switch (get_class($record)) {
-            case 'Collection':
-                if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->getRecordIdentifier($record);
-                    if (empty($identifier)) {
-                        return '';
-                    }
-
-                    $main_path = get_option('clean_url_main_path');
-                    $main_path = $main_path ? '/' . $main_path : '';
-
-                    $generic = get_option('clean_url_collection_generic');
-                    $generic = $generic ?  '/' . $generic : '';
-
-                    return CURRENT_BASE_URL . $main_path . $generic . '/' . $identifier;
-                }
-                break;
-
-            case 'Item':
-                if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->getRecordIdentifier($record);
-                    if (empty($identifier)) {
-                        $identifier = $record->id;
-                    }
-
-                    $main_path = get_option('clean_url_main_path');
-                    $main_path = $main_path ? '/' . $main_path : '';
-
-                    switch (get_option('clean_url_item_url')) {
-                        case 'generic':
-                            $generic = get_option('clean_url_item_generic');
-                            $generic = $generic ?  '/' . $generic : '';
-                            return CURRENT_BASE_URL . $main_path . $generic . '/' . $identifier;
-
-                        case 'collection':
-                            $collection = $record->getCollection();
-                            $collection_identifier = $this->view->getRecordIdentifier($collection);
-                            if (!$collection_identifier) {
-                                return '';
-                            }
-                            return CURRENT_BASE_URL . $main_path . '/' . $collection_identifier . '/' . $identifier;
-                    }
-                }
-                break;
-
-            case 'File':
-                if ($action == 'show' || is_null($action)) {
-                    $identifier = $this->view->getRecordIdentifier($record);
-                    if (empty($identifier)) {
-                        $identifier = $record->id;
-                    }
-
-                    $main_path = get_option('clean_url_main_path');
-                    $main_path = $main_path ? '/' . $main_path : '';
-
-                    switch (get_option('clean_url_file_url')) {
-                        case 'generic':
-                            $generic = get_option('clean_url_file_generic');
-                            $generic = $generic ?  '/' . $generic : '';
-                            return CURRENT_BASE_URL . $main_path . $generic . '/' . $identifier;
-
-                        case 'generic_item':
-                            $generic = get_option('clean_url_file_generic');
-                            $generic = $generic ?  '/' . $generic : '';
-
-                            $item = $record->getItem();
-                            $item_identifier = $this->view->getRecordIdentifier($item);
-                            if (!$item_identifier) {
-                                $item_identifier = $item->id;
-                            }
-                            return CURRENT_BASE_URL . $main_path . $generic . '/' . $item_identifier . '/' . $identifier;
-
-                        case 'collection':
-                            $item = $record->getItem();
-                            $collection = $item->getCollection();
-                            $collection_identifier = $this->view->getRecordIdentifier($collection);
-                            if (!$collection_identifier) {
-                                return '';
-                            }
-                            return CURRENT_BASE_URL . $main_path . '/' . $collection_identifier . '/' . $identifier;
-
-                        case 'collection_item':
-                            $item = $record->getItem();
-                            $collection = $item->getCollection();
-                            $collection_identifier = $this->view->getRecordIdentifier($collection);
-                            if (!$collection_identifier) {
-                                return '';
-                            }
-                            $item_identifier = $this->view->getRecordIdentifier($item);
-                            if (!$item_identifier) {
-                                $item_identifier = $item->id;
-                            }
-                            return CURRENT_BASE_URL . $main_path . '/' . $collection_identifier . '/' . $item_identifier . '/' . $identifier;
-                    }
-                }
-                break;
+        if ($action == 'show' || is_null($action)) {
+            if (in_array(get_class($record), array(
+                'Collection',
+                'Item',
+                'File',
+            ))) {
+                return get_view()->getRecordFullIdentifier($record);
+            }
         }
 
-        // This record don't have  a clean url.
+        // This record don't have a clean url.
         return '';
     }
 }
