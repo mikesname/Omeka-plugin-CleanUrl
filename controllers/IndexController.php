@@ -273,6 +273,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $sql_from
                 JOIN {$db->ElementText} element_texts
                     ON records.id = element_texts.record_id
+                        AND element_texts.record_type = '$this->_recordType'
                 JOIN {$db->Element} elements
                     ON element_texts.element_id = elements.id
                 JOIN {$db->ElementSet} element_sets

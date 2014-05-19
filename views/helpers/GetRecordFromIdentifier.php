@@ -15,10 +15,11 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
      * Get record from identifier
      *
      * @param string $identifier Contains the prefix or not.
+     * @param string $recordType Search a specific record type if any.
      * @param boolean $withPrefix Indicates if identifier contains the prefix.
      * @return Omeka_Record_AbstractRecord|null
      */
-    public function getRecordFromIdentifier($identifier, $withPrefix = true)
+    public function getRecordFromIdentifier($identifier, $recordType = null, $withPrefix = true)
     {
         $db = get_db();
 
@@ -41,7 +42,8 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
             SELECT element_texts.record_type, element_texts.record_id
             FROM {$db->ElementText} element_texts
                 JOIN {$db->Element} elements
-                    ON element_texts.element_id = elements.id
+                    ON element_texts.element_id = elements.id"
+                    . ($recordType ? " AND element_texts.record_type = '$recordType'" : '') . "
                 JOIN {$db->ElementSet} element_sets
                     ON elements.element_set_id = element_sets.id
             WHERE element_sets.name = 'Dublin Core'
