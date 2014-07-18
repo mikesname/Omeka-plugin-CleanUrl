@@ -24,11 +24,17 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
      * 'current'. If any, implies main path.
      * @param boolean $absoluteUrl If true, implies current / admin or public
      * path and main path.
+     * @param string $format Format of the identifier (default one if empty).
      *
      * @return string
      *   Full identifier of the record, if any, else empty string.
      */
-    public function getRecordFullIdentifier($record, $withMainPath = true, $withBasePath = 'current', $absolute = false)
+    public function getRecordFullIdentifier(
+        $record,
+        $withMainPath = true,
+        $withBasePath = 'current',
+        $absolute = false,
+        $format = null)
     {
         switch (get_class($record)) {
             case 'Collection':
@@ -49,7 +55,11 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
                     $identifier = $record->id;
                 }
 
-                switch (get_option('clean_url_item_url')) {
+                if (empty($format)) {
+                    $format = get_option('clean_url_item_default');
+                }
+
+                switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_item_generic');
                         $generic = $generic ? $generic . '/' : '';
@@ -71,7 +81,11 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
                     $identifier = $record->id;
                 }
 
-                switch (get_option('clean_url_file_url')) {
+                if (empty($format)) {
+                    $format = get_option('clean_url_file_default');
+                }
+
+                switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_file_generic');
                         $generic = $generic ? $generic . '/' : '';

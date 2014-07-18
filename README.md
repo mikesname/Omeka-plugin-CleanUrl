@@ -17,6 +17,9 @@ http://example.com/document/dc:identifier.
 
 Clean urls are automatically displayed in public theme.
 
+Multiple urls can be set, in particular to have a permalink and a search engine
+optimized link.
+
 
 Installation
 ------------

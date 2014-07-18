@@ -29,9 +29,11 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_case_insensitive' => FALSE,
         'clean_url_main_path' => '',
         'clean_url_collection_generic' => '',
-        'clean_url_item_url' => 'generic',
+        'clean_url_item_default' => 'generic',
+        'clean_url_item_alloweds' => 'a:1:{i:0;s:7:"generic";}',
         'clean_url_item_generic' => 'document',
-        'clean_url_file_url' => 'generic',
+        'clean_url_file_default' => 'generic',
+        'clean_url_file_alloweds' => 'a:1:{i:0;s:7:"generic";}',
         'clean_url_file_generic' => 'file',
         'clean_url_display_admin_browse_identifier' => true,
     );
@@ -70,6 +72,18 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             set_option('clean_url_file_generic', $this->_options['clean_url_file_generic']);
             set_option('clean_url_display_admin_browse_identifier', $this->_options['clean_url_display_admin_browse_identifier']);
         }
+
+        if (version_compare($oldVersion, '2.8', '<')) {
+            $itemUrl = get_option('clean_url_item_url');
+            set_option('clean_url_item_default', $itemUrl);
+            delete_option('clean_url_item_url');
+            set_option('clean_url_item_alloweds', serialize(array($itemUrl)));
+
+            $fileUrl = get_option('clean_url_file_url');
+            set_option('clean_url_file_default', $fileUrl);
+            delete_option('clean_url_file_url');
+            set_option('clean_url_file_alloweds', serialize(array($fileUrl)));
+        }
     }
 
     /**
@@ -104,9 +118,19 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         set_option('clean_url_case_insensitive', (int) (boolean) $post['clean_url_case_insensitive']);
         set_option('clean_url_main_path', $this->_sanitizeString(trim($post['clean_url_main_path'], ' /\\')));
         set_option('clean_url_collection_generic', $this->_sanitizeString(trim($post['clean_url_collection_generic'], ' /\\')));
-        set_option('clean_url_item_url', $post['clean_url_item_url']);
+        set_option('clean_url_item_default', $post['clean_url_item_default']);
+        // The default url should be allowed.
+        $alloweds = $post['clean_url_item_alloweds'];
+        $alloweds[] = $post['clean_url_item_default'];
+        $alloweds = array_values(array_unique($alloweds));
+        set_option('clean_url_item_alloweds', serialize($alloweds));
         set_option('clean_url_item_generic', $this->_sanitizeString(trim($post['clean_url_item_generic'], ' /\\')));
-        set_option('clean_url_file_url', $post['clean_url_file_url']);
+        set_option('clean_url_file_default', $post['clean_url_file_default']);
+        // The default url should be allowed.
+        $alloweds = $post['clean_url_file_alloweds'];
+        $alloweds[] = $post['clean_url_file_default'];
+        $alloweds = array_values(array_unique($alloweds));
+        set_option('clean_url_file_alloweds', serialize($alloweds));
         set_option('clean_url_file_generic', $this->_sanitizeString(trim($post['clean_url_file_generic'], ' /\\')));
         set_option('clean_url_display_admin_browse_identifier', (int) (boolean) $post['clean_url_display_admin_browse_identifier']);
     }
@@ -143,6 +167,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $collection_generic = get_option('clean_url_collection_generic');
         $collection_generic = $collection_generic ? $collection_generic . '/' : '';
 
+        $allowedForItems = unserialize(get_option('clean_url_item_alloweds'));
+        $allowedForFiles = unserialize(get_option('clean_url_file_alloweds'));
+
         // For performance and security reasons, one route is added for each
         // collection instead of one jokerised main route.
         // TODO Recheck in order to simplify or let.
@@ -178,7 +205,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             }
 
             // Add a collection route for items.
-            if (get_option('clean_url_item_url') == 'collection') {
+            if (in_array('collection', $allowedForItems)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_item', new Zend_Controller_Router_Route(
                     $route . '/:dc-identifier',
@@ -203,7 +230,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             }
 
             // Add a collection route for files.
-            if (get_option('clean_url_file_url') == 'collection') {
+            if (in_array('collection', $allowedForFiles)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_file', new Zend_Controller_Router_Route(
                     $route . '/:dc-identifier',
@@ -226,8 +253,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     )));
                 }
             }
+
             // Add a collection / item route for files.
-            elseif (get_option('clean_url_file_url') == 'collection_item') {
+            if (in_array('collection_item', $allowedForFiles)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file', new Zend_Controller_Router_Route(
                     $route . '/:item-dc-identifier/:dc-identifier',
@@ -253,7 +281,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         // Add a generic route for items.
-        if (get_option('clean_url_item_url') == 'generic') {
+        if (in_array('generic', $allowedForItems)) {
             $item_generic = get_option('clean_url_item_generic');
             $route = $main_path . $item_generic;
             $router->addRoute('cleanUrl_generic_items_browse', new Zend_Controller_Router_Route(
@@ -293,7 +321,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         // Add a generic route for files.
-        if (get_option('clean_url_file_url') == 'generic') {
+        if (in_array('generic', $allowedForFiles)) {
             $file_generic = get_option('clean_url_file_generic');
             $route = $main_path . $file_generic;
             $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
@@ -317,8 +345,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 )));
             }
         }
+
         // Add a generic / item route for files.
-        elseif (get_option('clean_url_file_url') == 'generic_item') {
+        if (in_array('generic_item', $allowedForFiles)) {
             $file_generic = get_option('clean_url_file_generic');
             $route = $main_path . $file_generic;
             $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(

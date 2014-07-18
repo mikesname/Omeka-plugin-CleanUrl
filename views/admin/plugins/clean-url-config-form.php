@@ -1,9 +1,18 @@
+<style>
+    ul.checkboxes {
+        list-style: none;
+        margin-left: 5px;
+        padding-left: 0;
+    }
+</style>
 <p>
 <?php
     $view = get_view();
     echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/dc:identifier.') . '<br />';
     echo __('A main path can be added before collection names, for example "collections", "library" or "archives", to get Urls like http://example.com/my_archives/my_collection/dc:identifier.') . '<br />';
     echo __('If an item or a file has no identifier, its id is used, for example "http://example.com/library/image/20/13", depending on selected formats.');
+    echo '<strong>' . __('Warning') . '</strong>';
+    echo __('Currently, some combinations of formats for urls are not possible. So check it before use.');
 ?>
 </p>
 <fieldset id="fieldset-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
@@ -63,15 +72,40 @@
 <fieldset id="fieldset-items"><legend><?php echo __('Items'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
-            <?php echo $view->formLabel('clean_url_item_url', __('Url of items')); ?>
+            <?php echo $view->formLabel('clean_url_item_default', __('Default url of items')); ?>
         </div>
         <div class='inputs five columns omega'>
-            <?php echo $view->formRadio('clean_url_item_url', get_option('clean_url_item_url'), NULL, array(
-                    'generic' => '/ generic / dc:identifier',
-                    'collection' => '/ collection identifier / dc:identifier',
-                )); ?>
+            <?php
+            $checkboxes = array(
+                'generic' => '/ generic / dc:identifier',
+                'collection' => '/ collection identifier / dc:identifier',
+            );
+            echo $view->formRadio('clean_url_item_default', get_option('clean_url_item_default'), NULL, $checkboxes); ?>
             <p class="explanation">
-                <?php echo __('Select the form of the url for items.'); ?>
+                <?php echo __('Select the default format of the url for items.'); ?>
+            </p>
+        </div>
+    </div>
+    <div class="field">
+        <div class="two columns alpha">
+            <?php echo $view->formLabel('clean_url_item_alloweds', __('Allowed urls for items')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <ul class="checkboxes">
+                <?php
+                $alloweds = unserialize(get_option('clean_url_item_alloweds'));
+                foreach ($checkboxes as $key => $label):
+                    echo '<li>';
+                    echo $view->formCheckbox('clean_url_item_alloweds[]', $key,
+                        array('checked' => in_array($key, $alloweds) ? 'checked' : ''));
+                    echo $label;
+                    echo '</li>';
+                endforeach;
+                ?>
+            </ul>
+            <p class="explanation">
+                <?php echo __('Select the allowed formats for urls of items.');
+                echo ' ' . __('This is useful to allow a permalink and a search engine optimized link.'); ?>
             </p>
         </div>
     </div>
@@ -90,17 +124,42 @@
 <fieldset id="fieldset-files"><legend><?php echo __('Files'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
-            <?php echo $view->formLabel('clean_url_file_url', __('Url of files')); ?>
+            <?php echo $view->formLabel('clean_url_file_default', __('Default url of files')); ?>
         </div>
         <div class='inputs five columns omega'>
-            <?php echo $view->formRadio('clean_url_file_url', get_option('clean_url_file_url'), NULL, array(
-                    'generic' => '/ generic / dc:identifier',
-                    'generic_item' => '/ generic / item identifier / dc:identifier',
-                    'collection' => '/ collection identifier / dc:identifier',
-                    'collection_item' => '/ collection identifier / item identifier / dc:identifier',
-                )); ?>
+            <?php
+            $checkboxes = array(
+                'generic' => '/ generic / dc:identifier',
+                'generic_item' => '/ generic / item identifier / dc:identifier',
+                'collection' => '/ collection identifier / dc:identifier',
+                'collection_item' => '/ collection identifier / item identifier / dc:identifier',
+            );
+            echo $view->formRadio('clean_url_file_default', get_option('clean_url_file_default'), NULL, $checkboxes); ?>
             <p class="explanation">
-                <?php echo __('Select the form of the url for files.'); ?>
+                <?php echo __('Select the default format of the url for files.'); ?>
+            </p>
+        </div>
+    </div>
+    <div class="field">
+        <div class="two columns alpha">
+            <?php echo $view->formLabel('clean_url_file_alloweds', __('Allowed urls for files')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <ul class="checkboxes">
+                <?php
+                $alloweds = unserialize(get_option('clean_url_file_alloweds'));
+                foreach ($checkboxes as $key => $label):
+                    echo '<li>';
+                    echo $view->formCheckbox('clean_url_file_alloweds[]', $key,
+                        array('checked' => in_array($key, $alloweds) ? 'checked' : ''));
+                    echo $label;
+                    echo '</li>';
+                endforeach;
+                ?>
+            </ul>
+            <p class="explanation">
+                <?php echo __('Select the allowed formats for urls of files.');
+                echo ' ' . __('This is useful to allow a permalink and a search engine optimized link.'); ?>
             </p>
         </div>
     </div>
