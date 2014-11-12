@@ -230,16 +230,16 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $bind[] = $prefix . ' ' . $this->_record_identifier;
 
         // Check only lowercase if needed.
-        if (get_option('clean_url_case_insensitive') != '1') {
-            $sql_text = "
-                AND (element_texts.text = ?
+        if (!get_option('clean_url_case_insensitive')) {
+            $sqlWhereText =
+                "AND (element_texts.text = ?
                     OR element_texts.text = ?)";
         }
         else {
             $bind[0] = strtolower($bind[0]);
             $bind[1] = strtolower($bind[1]);
-            $sql_text = "
-                AND (LOWER(element_texts.text) = ?
+            $sqlWhereText =
+                "AND (LOWER(element_texts.text) = ?
                     OR LOWER(element_texts.text) = ?)";
         }
 
@@ -270,8 +270,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
                     ON records.id = element_texts.record_id
                         AND element_texts.record_type = '$this->_record_type'
             WHERE element_texts.element_id = '$elementId'
-                AND (element_texts.text = ?
-                    OR element_texts.text = ?)
+                $sqlWhereText
                 $sqlWhereCollection
                 $sqlWhereRecordType
             LIMIT 1
