@@ -14,16 +14,16 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
     /**
      * Get record from identifier
      *
-     * @param string $identifier Contains the prefix or not.
-     * @param string $recordType Search a specific record type if any.
-     * @param boolean $withPrefix Indicates if identifier contains the prefix.
-     * @param boolean $onlyRecordId Indicates to return the record id only.
+     * @param string $identifier The identifier of the record to find.
+     * @param boolean $withPrefix Optional. If identifier begins with prefix.
+     * @param string $recordType Optional. Search a specific record type if any.
+     * @param boolean $onlyRecordId Optional. Return only the record id.
      * @return Omeka_Record_AbstractRecord|null
      */
     public function getRecordFromIdentifier(
         $identifier,
+        $withPrefix = false,
         $recordType = null,
-        $withPrefix = true,
         $onlyRecordId = false
     ) {
         $db = get_db();
