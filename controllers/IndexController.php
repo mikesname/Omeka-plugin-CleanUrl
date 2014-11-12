@@ -7,9 +7,9 @@
 class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 {
     protected $_recordType = '';
-    private $_dc_identifier = '';
+    private $_record_identifier = '';
     private $_collection_id = '';
-    private $_item_dc_identifier = '';
+    private $_item_record_identifier = '';
 
     /**
      * Initialize the controller.
@@ -39,7 +39,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
+            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
@@ -51,7 +51,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
                 return $this->forward('not-found', 'error', 'default');
             }
 
-            $id = $this->_dc_identifier;
+            $id = $this->_record_identifier;
         }
 
         return $this->forward('show', 'items', 'default', array(
@@ -74,12 +74,12 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
+            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
 
-            $id = $this->_dc_identifier;
+            $id = $this->_record_identifier;
         }
 
         return $this->forward('show', 'files', 'default', array(
@@ -118,7 +118,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_dc_identifier);
+            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
@@ -133,7 +133,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
                 return $this->forward('not-found', 'error', 'default');
             }
 
-            $id = $this->_dc_identifier;
+            $id = $this->_record_identifier;
         }
 
         return $this->forward('show', 'files', 'default', array(
@@ -180,13 +180,13 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $item = $file->getItem();
 
         // Check if the found file belongs to the item.
-        if (!empty($this->_item_dc_identifier)) {
+        if (!empty($this->_item_record_identifier)) {
             // Get the item identifier.
             $item_identifier = $this->view->getRecordIdentifier($item);
 
             // Check identifier and id of item.
-            if (strtolower($this->_item_dc_identifier) != strtolower($item_identifier)
-                    && $this->_item_dc_identifier != $item->id
+            if (strtolower($this->_item_record_identifier) != strtolower($item_identifier)
+                    && $this->_item_record_identifier != $item->id
                 ) {
                 return false;
             }
@@ -204,11 +204,12 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _routeRecord()
     {
         $db = get_db();
+        $elementId = (integer) get_option('clean_url_identifier_element');
 
         // Identifiers to check.
-        $this->_dc_identifier = $this->_getParam('dc-identifier');
+        $this->_record_identifier = $this->_getParam('record-identifier');
         $this->_collection_id = $this->_getParam('collection_id');
-        $this->_item_dc_identifier = $this->_getParam('item-dc-identifier');
+        $this->_item_record_identifier = $this->_getParam('item-record-identifier');
 
         // Select table.
         switch ($this->_recordType) {
@@ -224,9 +225,9 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $bind = array();
 
         // Check the dublin core identifier of the record.
-        $bind[] = get_option('clean_url_identifier_prefix') . $this->_dc_identifier;
+        $bind[] = get_option('clean_url_identifier_prefix') . $this->_record_identifier;
         // Check with a space between prefix and identifier too.
-        $bind[] = get_option('clean_url_identifier_prefix') . ' ' . $this->_dc_identifier;
+        $bind[] = get_option('clean_url_identifier_prefix') . ' ' . $this->_record_identifier;
 
         // Check only lowercase if needed.
         if (get_option('clean_url_case_insensitive') != '1') {
@@ -274,12 +275,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
                 JOIN {$db->ElementText} element_texts
                     ON records.id = element_texts.record_id
                         AND element_texts.record_type = '$this->_recordType'
-                JOIN {$db->Element} elements
-                    ON element_texts.element_id = elements.id
-                JOIN {$db->ElementSet} element_sets
-                    ON elements.element_set_id = element_sets.id
-            WHERE element_sets.name = 'Dublin Core'
-                AND elements.name = 'Identifier'
+            WHERE element_texts.element_id = '$elementId'
                 AND (element_texts.text = ?
                     OR element_texts.text = ?)
                 $sql_collection
@@ -290,7 +286,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // Additional check for item identifier : the file should belong to item.
         // TODO Include this in the query.
-        if ($id && !empty($this->_item_dc_identifier) && $this->_recordType == 'File') {
+        if ($id && !empty($this->_item_record_identifier) && $this->_recordType == 'File') {
             // Check if the found file belongs to the item.
             $file = get_record_by_id('File', $id);
             if (!$this->_checkItemFile($file)) {

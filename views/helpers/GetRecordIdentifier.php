@@ -32,23 +32,43 @@ class Omeka_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
             throw new Omeka_View_Exception(__('Invalid record passed while getting record URL.'));
         }
 
-        $identifiers = $record->getElementTexts('Dublin Core', 'Identifier');
-        if (empty($identifiers)) {
-            return '';
-        }
+        // Use a direct query in order to improve speed.
+        $db = get_db();
+        $elementId = (integer) get_option('clean_url_identifier_element');
+        $bind = array(
+            get_class($record),
+            $record->id,
+        );
 
-        // Get all identifiers with the chosen prefix in case they are multiple.
-        foreach ($identifiers as $key => $identifier) {
-            $identifiers[$key] = $identifier->text;
-        }
-        $filtered_identifiers = array_values(array_filter($identifiers, 'self::_filteredIdentifier'));
-        if (!isset($filtered_identifiers[0])) {
-            return '';
-        }
-
-        // Keep only the first identifier without the configured prefix.
         $prefix = get_option('clean_url_identifier_prefix');
-        $identifier = trim(substr($filtered_identifiers[0], strlen($prefix)));
+        if ($prefix) {
+            $sqlText = 'AND element_texts.text LIKE ?';
+            $bind[] = $prefix . '%';
+        }
+        else {
+            $sqlText = '';
+        }
+
+        $sql = "
+            SELECT element_texts.text
+            FROM {$db->ElementText} element_texts
+            WHERE element_texts.element_id = '$elementId'
+                AND element_texts.record_type = ?
+                AND element_texts.record_id = ?
+                $sqlText
+            ORDER BY element_texts.id
+            LIMIT 1
+        ";
+        $identifier = $db->fetchOne($sql, $bind);
+
+        if (empty($identifier)) {
+            return '';
+        }
+
+        // Keep only the identifier without the configured prefix.
+        if ($prefix) {
+            $identifier = trim(substr($identifier, strlen($prefix)));
+        }
 
         // Sanitize the identifier in order to use it securely in a clean url.
         if ($sanitize) {
@@ -56,28 +76,6 @@ class Omeka_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
         }
 
         return $identifier;
-    }
-
-    /**
-     * Check if an identifier of an item begins with the configured prefix.
-     *
-     * @param string $identifier
-     *   Identifier to check.
-     *
-     * @return boolean
-     *   True if identifier begins with the prefix, false else.
-     */
-    private function _filteredIdentifier($identifier)
-    {
-        static $prefix;
-        static $prefix_len;
-
-        if ($prefix === null) {
-            $prefix = strtolower(get_option('clean_url_identifier_prefix'));
-            $prefix_len = strlen($prefix);
-        }
-
-        return (strtolower(substr($identifier, 0, $prefix_len)) == $prefix);
     }
 
     /**

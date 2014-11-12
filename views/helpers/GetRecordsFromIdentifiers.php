@@ -35,8 +35,6 @@ class Omeka_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Abstr
         $return = 'record',
         $checkPublic = true)
     {
-        $db = get_db();
-
         $one = false;
         if (is_string($identifiers)) {
             $one = true;
@@ -49,6 +47,9 @@ class Omeka_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Abstr
         if (empty($identifiers)) {
             return null;
         }
+
+        $db = get_db();
+        $elementId = (integer) get_option('clean_url_identifier_element');
 
         if ($withPrefix) {
             $bind = $identifiers;
@@ -92,13 +93,8 @@ class Omeka_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Abstr
         $sql = "
             SELECT element_texts.record_type as 'type', element_texts.record_id as 'id'
             FROM {$db->ElementText} element_texts
-                JOIN {$db->Element} elements
-                    ON element_texts.element_id = elements.id
-                JOIN {$db->ElementSet} element_sets
-                    ON elements.element_set_id = element_sets.id
                 $sqlFromIsPublic
-            WHERE element_sets.name = 'Dublin Core'
-                AND elements.name = 'Identifier'
+            WHERE element_texts.element_id = '$elementId'
                 AND element_texts.text IN ($commaIdentifiers)
                 $sqlWhereIsPublic
             ORDER BY

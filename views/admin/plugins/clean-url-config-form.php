@@ -7,8 +7,8 @@
 </style>
 <p>
 <?php
-    echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/dc:identifier.') . '<br />';
-    echo __('A main path can be added before collection names, for example "collections", "library" or "archives", to get Urls like http://example.com/my_archives/my_collection/dc:identifier.') . '<br />';
+    echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/item_identifier.') . '<br />';
+    echo __('A main path can be added before collection names, for example "collections", "library" or "archives", to get Urls like http://example.com/my_archives/collection_identifier/item_identifier.') . '<br />';
     echo __('If an item or a file has no identifier, its id is used, for example "http://example.com/library/image/20/13", depending on selected formats.');
     echo '<br />';
     echo '<strong>' . __('Warning:') . '</strong>' . ' ';
@@ -16,6 +16,30 @@
 ?>
 </p>
 <fieldset id="fieldset-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
+    <div class="field">
+        <div class="two columns alpha">
+            <?php echo $view->formLabel('clean_url_identifier_element', __('Field where id is saved')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <?php
+                $elements = get_table_options('Element', null, array(
+                    'record_types' => array(null, 'All'),
+                    'sort' => 'alphaBySet',
+                ));
+                // Remove the "Select Below" label.
+                unset($elements['']);
+                echo $this->formSelect('clean_url_identifier_element',
+                    get_option('clean_url_identifier_element'),
+                    array(),
+                    $elements);
+            ?>
+            <p class="explanation">
+                <?php echo __('Field where to save the identifier of the item or file.');
+                echo ' ' . __('It should be an identifier used for all record types (Collection, Item and File).');
+                echo ' ' . __('Default is to use "Dublin Core:Identifier".'); ?>
+            </p>
+        </div>
+    </div>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $view->formLabel('clean_url_identifier_prefix', __('Prefix of identifiers to use')); ?>
@@ -63,8 +87,8 @@
         <div class='inputs five columns omega'>
             <?php echo $view->formText('clean_url_collection_generic', get_option('clean_url_collection_generic'), NULL); ?>
             <p class="explanation">
-                <?php echo __('This main path is added before the collection name, for example "/ my_collections / dc:identifier".'); ?>
-                <?php echo __('Let empty if you do not want any ("/ dc:identifier").'); ?>
+                <?php echo __('This main path is added before the collection name, for example "/ my_collections / collection identifier".'); ?>
+                <?php echo __('Let empty if you do not want any ("/ collection identifier").'); ?>
             </p>
         </div>
     </div>
@@ -77,8 +101,8 @@
         <div class='inputs five columns omega'>
             <?php
             $checkboxes = array(
-                'generic' => '/ generic / dc:identifier',
-                'collection' => '/ collection identifier / dc:identifier',
+                'generic' => '/ generic / item identifier',
+                'collection' => '/ collection identifier / item identifier',
             );
             echo $view->formRadio('clean_url_item_default', get_option('clean_url_item_default'), NULL, $checkboxes); ?>
             <p class="explanation">
@@ -129,10 +153,10 @@
         <div class='inputs five columns omega'>
             <?php
             $checkboxes = array(
-                'generic' => '/ generic / dc:identifier',
-                'generic_item' => '/ generic / item dc:identifier / dc:identifier',
-                'collection' => '/ collection identifier / dc:identifier',
-                'collection_item' => '/ collection identifier / item dc:identifier / dc:identifier',
+                'generic' => '/ generic / file identifier',
+                'generic_item' => '/ generic / item identifier / file identifier',
+                'collection' => '/ collection identifier / file identifier',
+                'collection_item' => '/ collection identifier / item identifier / identifier',
             );
             echo $view->formRadio('clean_url_file_default', get_option('clean_url_file_default'), NULL, $checkboxes); ?>
             <p class="explanation">

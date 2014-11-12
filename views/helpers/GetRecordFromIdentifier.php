@@ -22,11 +22,23 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
     public function getRecordFromIdentifier($identifier, $recordType = null, $withPrefix = true)
     {
         $db = get_db();
+        $elementId = (integer) get_option('clean_url_identifier_element');
 
         // Clean and lowercase identifier to facilitate search.
         $identifier = trim(strtolower($identifier), ' /\\?<>:*%|"\'`&; ');
 
         $bind = array();
+
+        if ($recordType) {
+            $sqlRecordType = "AND element_texts.record_type = ?";
+            $bind[] = $recordType;
+            $sqlOrder = 'ORDER BY element_texts.record_id, element_texts.id';
+        }
+        else {
+            $sqlRecordType = '';
+            $sqlOrder = "ORDER BY FIELD(element_texts.record_type, 'Collection', 'Item', 'File'), element_texts.record_id, element_texts.id";
+        }
+
         if ($withPrefix) {
             $sqlText = 'AND element_texts.text = ?';
             $bind[] = $identifier;
@@ -41,14 +53,10 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
         $sql = "
             SELECT element_texts.record_type, element_texts.record_id
             FROM {$db->ElementText} element_texts
-                JOIN {$db->Element} elements
-                    ON element_texts.element_id = elements.id"
-                    . ($recordType ? " AND element_texts.record_type = '$recordType'" : '') . "
-                JOIN {$db->ElementSet} element_sets
-                    ON elements.element_set_id = element_sets.id
-            WHERE element_sets.name = 'Dublin Core'
-                AND elements.name = 'Identifier'
+            WHERE element_texts.element_id = '$elementId'
+                $sqlRecordType
                 $sqlText
+            $sqlOrder
             LIMIT 1
         ";
         $result = $db->fetchRow($sql, $bind);

@@ -15,7 +15,8 @@ See the example of the digitized heritage of the library of [Mines ParisTech].
 Usage
 -----
 
-Simply set an identifier for each document in the field `Dublin Core:Identifier`.
+Simply set an identifier for each record in a field (`Dublin Core:Identifier` by
+default).
 
 * If not set, the identifier will be the default id of the record.
 * A prefix can be added if you have other data in the same field.

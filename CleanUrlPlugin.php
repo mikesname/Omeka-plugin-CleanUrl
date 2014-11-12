@@ -25,6 +25,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     );
 
     protected $_options = array(
+        // 43 is the hard set id of "Dublin Core:Identifier" in default install.
+        'clean_url_identifier_element' => 43,
         'clean_url_identifier_prefix' => 'document:',
         'clean_url_case_insensitive' => FALSE,
         'clean_url_main_path' => '',
@@ -84,6 +86,10 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             delete_option('clean_url_file_url');
             set_option('clean_url_file_alloweds', serialize(array($fileUrl)));
         }
+
+        if (version_compare($oldVersion, '2.9', '<')) {
+            set_option('clean_url_identifier_element', $this->_options['clean_url_identifier_element']);
+        }
     }
 
     /**
@@ -130,9 +136,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
         // The default url should be allowed for items and files.
         $post['clean_url_item_alloweds'][] = $post['clean_url_item_default'];
-        $post['clean_url_item_alloweds'] =  array_values(array_unique($post['clean_url_item_alloweds']));
+        $post['clean_url_item_alloweds'] = array_values(array_unique($post['clean_url_item_alloweds']));
         $post['clean_url_file_alloweds'][] = $post['clean_url_file_default'];
-        $post['clean_url_file_alloweds'] =  array_values(array_unique($post['clean_url_file_alloweds']));
+        $post['clean_url_file_alloweds'] = array_values(array_unique($post['clean_url_file_alloweds']));
 
         foreach (array(
                 'clean_url_item_alloweds',
@@ -155,7 +161,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         if (get_option('clean_url_display_admin_browse_identifier')) {
             $view = $args['view'];
             $item = $args['item'];
-            $identifier =  $view->getRecordIdentifier($item);
+            $identifier = $view->getRecordIdentifier($item);
             echo '<div><span>' . ($identifier ?: '<strong>' . __('No document identifier.') . '</strong>') . '</span></div>';
        }
     }
@@ -220,7 +226,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             if (in_array('collection', $allowedForItems)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_item', new Zend_Controller_Router_Route(
-                    $route . '/:dc-identifier',
+                    $route . '/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -231,7 +237,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 // Add a lowercase route to prevent some practical issues.
                 if ($route != strtolower($route)) {
                     $router->addRoute('cleanUrl_collection_' . $collection->id . '_item_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:dc-identifier',
+                        strtolower($route) . '/:record-identifier',
                         array(
                             'module' => 'clean-url',
                             'controller' => 'index',
@@ -245,7 +251,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             if (in_array('collection', $allowedForFiles)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_file', new Zend_Controller_Router_Route(
-                    $route . '/:dc-identifier',
+                    $route . '/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -256,7 +262,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 // Add a lowercase route to prevent some practical issues.
                 if ($route != strtolower($route)) {
                     $router->addRoute('cleanUrl_collection_' . $collection->id . '_file_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:dc-identifier',
+                        strtolower($route) . '/:record-identifier',
                         array(
                             'module' => 'clean-url',
                             'controller' => 'index',
@@ -270,7 +276,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             if (in_array('collection_item', $allowedForFiles)) {
                 $route = $main_path . $collection_identifier;
                 $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file', new Zend_Controller_Router_Route(
-                    $route . '/:item-dc-identifier/:dc-identifier',
+                    $route . '/:item-record-identifier/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -281,7 +287,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 // Add a lowercase route to prevent some practical issues.
                 if ($route != strtolower($route)) {
                     $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:item-dc-identifier/:dc-identifier',
+                        strtolower($route) . '/:item-record-identifier/:record-identifier',
                         array(
                             'module' => 'clean-url',
                             'controller' => 'index',
@@ -304,7 +310,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'action' => 'items-browse',
             )));
             $router->addRoute('cleanUrl_generic_item', new Zend_Controller_Router_Route(
-                $route . '/:dc-identifier',
+                $route . '/:record-identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -322,7 +328,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                         'action' => 'items-browse',
                 )));
                 $router->addRoute('cleanUrl_generic_item_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:dc-identifier',
+                    strtolower($route) . '/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -337,7 +343,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             $file_generic = get_option('clean_url_file_generic');
             $route = $main_path . $file_generic;
             $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
-                $route . '/:dc-identifier',
+                $route . '/:record-identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -348,7 +354,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             // Add a lowercase route to prevent some practical issues.
             if ($route != strtolower($route)) {
                 $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:dc-identifier',
+                    strtolower($route) . '/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -363,7 +369,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             $file_generic = get_option('clean_url_file_generic');
             $route = $main_path . $file_generic;
             $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(
-                $route . '/:item-dc-identifier/:dc-identifier',
+                $route . '/:item-record-identifier/:record-identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -374,7 +380,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             // Add a lowercase route to prevent some practical issues.
             if ($route != strtolower($route)) {
                 $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:item-dc-identifier/:dc-identifier',
+                    strtolower($route) . '/:item-record-identifier/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
