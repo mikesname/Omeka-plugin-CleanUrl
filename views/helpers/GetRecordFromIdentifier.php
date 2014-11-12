@@ -17,10 +17,15 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
      * @param string $identifier Contains the prefix or not.
      * @param string $recordType Search a specific record type if any.
      * @param boolean $withPrefix Indicates if identifier contains the prefix.
+     * @param boolean $onlyRecordId Indicates to return the record id only.
      * @return Omeka_Record_AbstractRecord|null
      */
-    public function getRecordFromIdentifier($identifier, $recordType = null, $withPrefix = true)
-    {
+    public function getRecordFromIdentifier(
+        $identifier,
+        $recordType = null,
+        $withPrefix = true,
+        $onlyRecordId = false
+    ) {
         $db = get_db();
         $elementId = (integer) get_option('clean_url_identifier_element');
 
@@ -45,9 +50,10 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
         }
         else {
             $sqlText = 'AND (element_texts.text = ? OR element_texts.text = ?)';
-            $bind[] = get_option('clean_url_identifier_prefix') . $identifier;
+            $prefix = get_option('clean_url_identifier_prefix');
+            $bind[] = $prefix . $identifier;
             // Check with a space between prefix and identifier too.
-            $bind[] = get_option('clean_url_identifier_prefix') . ' ' . $identifier;
+            $bind[] = $prefix . ' ' . $identifier;
         }
 
         $sql = "
@@ -61,8 +67,10 @@ class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstrac
         ";
         $result = $db->fetchRow($sql, $bind);
 
-        return $result
-            ? get_record_by_id($result['record_type'], $result['record_id'])
-            : null;
+        if ($result) {
+            return $onlyRecordId
+                ? $result['record_id']
+                : get_record_by_id($result['record_type'], $result['record_id']);
+        }
     }
 }

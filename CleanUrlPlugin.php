@@ -4,7 +4,7 @@
  *
  * Allows to have URL like http://example.com/my_collection/dc:identifier.
  *
- * @copyright Daniel Berthereau, 2012-2013
+ * @copyright Daniel Berthereau, 2012-2014
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  */
 
@@ -202,7 +202,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         $router = $args['router'];
-        $view = get_view();
 
         $mainPath = get_option('clean_url_main_path');
         $collectionGeneric = get_option('clean_url_collection_generic');
@@ -212,112 +211,127 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $allowedForItems = unserialize(get_option('clean_url_item_alloweds'));
         $allowedForFiles = unserialize(get_option('clean_url_file_alloweds'));
 
-        // Get all collections identifiers with one query.
-        $collectionsIdentifiers = $view->getRecordTypeIdentifiers('Collection', true);
-        // For performance and security reasons, one route is added for each
-        // collection instead of one jokerised main route.
-        // TODO Recheck in order to simplify or let.
-        foreach ($collectionsIdentifiers as $collectionId => $collectionIdentifier) {
-            if (empty($collectionIdentifier)) {
-                continue;
-            }
+        // Note: order of routes is important: Zend checks from the last one
+        // (most specific) to the first one (most generic).
 
-            // Add a route for the collection show view.
-            $route = $mainPath . $collectionGeneric . $collectionIdentifier;
-            $router->addRoute('cleanUrl_collection_' . $collectionId, new Zend_Controller_Router_Route(
-                $route,
+        // Get all collections identifiers with one query.
+        $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', true);
+        // Use one regex for all collections. Default is case insensitve.
+        $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsIdentifiers) . ')';
+        $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route_Regex(
+            $collectionsRegex,
+            array(
+                'module' => 'clean-url',
+                'controller' => 'index',
+                'action' => 'collection-show',
+            ),
+            array(
+                1 => 'record_identifier',
+            ),
+            'collections/show/%d'
+        ));
+
+        // Add a collection route for files.
+        if (in_array('collection', $allowedForFiles)) {
+            $router->addRoute('cleanUrl_collections_file', new Zend_Controller_Router_Route_Regex(
+                $collectionsRegex . '/([^/]+)',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
-                    'action' => 'collection-show',
-                    'collection_id' => $collectionId,
+                    'action' => 'route-collection-file',
+                ),
+                array(
+                    1 => 'collection_identifier',
+                    2 => 'record_identifier',
+                ),
+                'files/show/%d'
+            ));
+        }
+
+        // Add a collection / item route for files.
+        if (in_array('collection_item', $allowedForFiles)) {
+            $router->addRoute('cleanUrl_collections_item_file', new Zend_Controller_Router_Route_Regex(
+                $collectionsRegex . '/([^/]+)/([^/]+)',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-collection-item-file',
+                ),
+                array(
+                    1 => 'collection_identifier',
+                    2 => 'item_identifier',
+                    3 => 'record_identifier',
+                ),
+                'files/show/%d'
+            ));
+        }
+
+        // Add a collection route for items.
+        if (in_array('collection', $allowedForItems)) {
+            $router->addRoute('cleanUrl_collections_item', new Zend_Controller_Router_Route_Regex(
+                $collectionsRegex . '/([^/]+)',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-collection-item',
+                ),
+                array(
+                    1 => 'collection_identifier',
+                    2 => 'record_identifier',
+                ),
+                'items/show/%d'
+            ));
+        }
+
+        // Add a generic route for files.
+        if (in_array('generic', $allowedForFiles)) {
+            $route = $mainPath . $fileGeneric;
+            $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
+                $route . ':record_identifier',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-file',
+                    'collection_id' => NULL,
             )));
 
             // Add a lowercase route to prevent some practical issues.
-            if ($route != strtolower($route)) {
-                $router->addRoute('cleanUrl_collection_' . $collectionId . '_lower', new Zend_Controller_Router_Route(
-                    strtolower($route),
+            $lowerRoute = strtolower($route);
+            if ($lowerRoute != $route) {
+                $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
+                    $lowerRoute . ':record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
-                        'action' => 'collection-show',
-                        'collection_id' => $collectionId,
+                        'action' => 'route-file',
+                        'collection_id' => NULL,
                 )));
             }
+        }
 
-            // Add a collection route for items.
-            if (in_array('collection', $allowedForItems)) {
-                $route = $mainPath . $collectionIdentifier;
-                $router->addRoute('cleanUrl_collection_' . $collectionId . '_item', new Zend_Controller_Router_Route(
-                    $route . '/:record-identifier',
+        // Add a generic / item route for files.
+        if (in_array('generic_item', $allowedForFiles)) {
+            $route = $mainPath . $itemGeneric;
+            $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(
+                $route . ':item_identifier/:record_identifier',
+                array(
+                    'module' => 'clean-url',
+                    'controller' => 'index',
+                    'action' => 'route-item-file',
+                    'collection_id' => NULL,
+            )));
+
+            // Add a lowercase route to prevent some practical issues.
+            $lowerRoute = strtolower($route);
+            if ($lowerRoute != $route) {
+                $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
+                    $lowerRoute . ':item_identifier/:record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
-                        'action' => 'route-collection-item',
-                        'collection_id' => $collectionId,
+                        'action' => 'route-item-file',
+                        'collection_id' => NULL,
                 )));
-
-                // Add a lowercase route to prevent some practical issues.
-                if ($route != strtolower($route)) {
-                    $router->addRoute('cleanUrl_collection_' . $collectionId . '_item_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:record-identifier',
-                        array(
-                            'module' => 'clean-url',
-                            'controller' => 'index',
-                            'action' => 'route-collection-item',
-                            'collection_id' => $collectionId,
-                    )));
-                }
-            }
-
-            // Add a collection route for files.
-            if (in_array('collection', $allowedForFiles)) {
-                $route = $mainPath . $collectionIdentifier;
-                $router->addRoute('cleanUrl_collection_' . $collectionId . '_file', new Zend_Controller_Router_Route(
-                    $route . '/:record-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-collection-file',
-                        'collection_id' => $collectionId,
-                )));
-
-                // Add a lowercase route to prevent some practical issues.
-                if ($route != strtolower($route)) {
-                    $router->addRoute('cleanUrl_collection_' . $collectionId . '_file_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:record-identifier',
-                        array(
-                            'module' => 'clean-url',
-                            'controller' => 'index',
-                            'action' => 'route-collection-file',
-                            'collection_id' => $collectionId,
-                    )));
-                }
-            }
-
-            // Add a collection / item route for files.
-            if (in_array('collection_item', $allowedForFiles)) {
-                $route = $mainPath . $collectionIdentifier;
-                $router->addRoute('cleanUrl_collection_item_' . $collectionId . '_file', new Zend_Controller_Router_Route(
-                    $route . '/:item-record-identifier/:record-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-collection-item-file',
-                        'collection_id' => $collectionId,
-                )));
-
-                // Add a lowercase route to prevent some practical issues.
-                if ($route != strtolower($route)) {
-                    $router->addRoute('cleanUrl_collection_item_' . $collectionId . '_file_lower', new Zend_Controller_Router_Route(
-                        strtolower($route) . '/:item-record-identifier/:record-identifier',
-                        array(
-                            'module' => 'clean-url',
-                            'controller' => 'index',
-                            'action' => 'route-collection-item-file',
-                            'collection_id' => $collectionId,
-                    )));
-                }
             }
         }
 
@@ -332,7 +346,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'action' => 'items-browse',
             )));
             $router->addRoute('cleanUrl_generic_item', new Zend_Controller_Router_Route(
-                $route . '/:record-identifier',
+                $route . '/:record_identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -341,70 +355,21 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             )));
 
             // Add a lowercase route to prevent some practical issues.
-            if ($route != strtolower($route)) {
+            $lowerRoute = strtolower($route);
+            if ($lowerRoute != $route) {
                 $router->addRoute('cleanUrl_generic_items_browse_lower', new Zend_Controller_Router_Route(
-                    strtolower($route),
+                    $lowerRoute,
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'items-browse',
                 )));
                 $router->addRoute('cleanUrl_generic_item_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:record-identifier',
+                    $lowerRoute . '/:record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'route-item',
-                        'collection_id' => NULL,
-                )));
-            }
-        }
-
-        // Add a generic route for files.
-        if (in_array('generic', $allowedForFiles)) {
-            $route = $mainPath . $fileGeneric;
-            $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
-                $route . ':record-identifier',
-                array(
-                    'module' => 'clean-url',
-                    'controller' => 'index',
-                    'action' => 'route-file',
-                    'collection_id' => NULL,
-            )));
-
-            // Add a lowercase route to prevent some practical issues.
-            if ($route != strtolower($route)) {
-                $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . ':record-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-file',
-                        'collection_id' => NULL,
-                )));
-            }
-        }
-
-        // Add a generic / item route for files.
-        if (in_array('generic_item', $allowedForFiles)) {
-            $route = $mainPath . $fileGeneric;
-            $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(
-                $route . ':item-record-identifier/:record-identifier',
-                array(
-                    'module' => 'clean-url',
-                    'controller' => 'index',
-                    'action' => 'route-item-file',
-                    'collection_id' => NULL,
-            )));
-
-            // Add a lowercase route to prevent some practical issues.
-            if ($route != strtolower($route)) {
-                $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . ':item-record-identifier/:record-identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-item-file',
                         'collection_id' => NULL,
                 )));
             }

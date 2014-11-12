@@ -6,10 +6,18 @@
  */
 class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 {
-    protected $_recordType = '';
+    // The type and id of record to get.
+    private $_record_type = '';
     private $_record_identifier = '';
-    private $_collection_id = '';
-    private $_item_record_identifier = '';
+    private $_record_id = 0;
+    // Identifiers from the url.
+    private $_collection_identifier = '';
+    private $_item_identifier = '';
+    private $_file_identifier = '';
+    // Resolved records.
+    private $_collection_id = 0;
+    private $_item_id = 0;
+    private $_file_id = 0;
 
     /**
      * Initialize the controller.
@@ -18,6 +26,32 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     {
         // Reset script paths (will be regenerated in forwarded destination).
         get_view()->setScriptPath(null);
+    }
+
+    public function collectionShowAction()
+    {
+        $this->_collection_identifier = $this->getParam('record_identifier');
+        $result = $this->_setCollectionId();
+        if (empty($result)) {
+            throw new Omeka_Controller_Exception_404;
+        }
+        return $this->forward('show', 'collections', 'default', array(
+            'module' => null,
+            'controller' => 'collections',
+            'action' => 'show',
+            'id' => $this->_collection_id,
+            'record_type' => 'Collection',
+        ));
+    }
+
+    public function itemsBrowseAction()
+    {
+        return $this->forward('browse', 'items', 'default', array(
+            'module' => null,
+            'controller' => 'items',
+            'action' => 'browse',
+            'record_type' => 'Item',
+        ));
     }
 
     /**
@@ -33,13 +67,19 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      */
     public function routeCollectionItemAction()
     {
-        $this->_recordType = 'Item';
+        $this->_collection_identifier = $this->getParam('collection_identifier');
+        // If 0, this is possible (item without collection, or generic route).
+        $result = $this->_setCollectionId();
+        if (is_null($result)) {
+            return $this->forward('not-found', 'error', 'default');
+        }
 
+        $this->_record_type = 'Item';
         $id = $this->_routeRecord();
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
+            $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
@@ -58,8 +98,8 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             'module' => null,
             'controller' => 'items',
             'action' => 'show',
-            'record_type' => 'Item',
             'id' => $id,
+            'record_type' => 'Item',
         ));
     }
 
@@ -68,13 +108,12 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      */
     public function routeFileAction()
     {
-        $this->_recordType = 'File';
-
+        $this->_record_type = 'File';
         $id = $this->_routeRecord();
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
+            $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
@@ -86,8 +125,8 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             'module' => null,
             'controller' => 'files',
             'action' => 'show',
-            'record_type' => 'File',
             'id' => $id,
+            'record_type' => 'File',
         ));
     }
 
@@ -112,13 +151,24 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      */
     public function routeCollectionItemFileAction()
     {
-        $this->_recordType = 'File';
-
+        $this->_collection_identifier = $this->getParam('collection_identifier');
+        // If 0, this is possible (item without collection, or generic route).
+        $result = $this->_setCollectionId();
+        if (is_null($result)) {
+            return $this->forward('not-found', 'error', 'default');
+        }
+        $this->_item_identifier = $this->getParam('item_identifier');
+        // If 0, this is possible (generic route).
+        $result = $this->_setItemId();
+        if (is_null($result)) {
+            return $this->forward('not-found', 'error', 'default');
+        }
+        $this->_record_type = 'File';
         $id = $this->_routeRecord();
 
         // If no identifier exists, the plugin tries to use the record id directly.
         if (!$id) {
-            $record = get_record_by_id($this->_recordType, $this->_record_identifier);
+            $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
                 return $this->forward('not-found', 'error', 'default');
             }
@@ -140,9 +190,105 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             'module' => null,
             'controller' => 'files',
             'action' => 'show',
-            'record_type' => 'File',
             'id' => $id,
+            'record_type' => 'File',
         ));
+    }
+
+    /**
+     * Routes a clean url of an item or a file to the default url.
+     *
+     * Collections are managed directly in collectionShowAction().
+     *
+     * @return id
+     *   Id of the record.
+     */
+    protected function _routeRecord()
+    {
+        $db = get_db();
+        $elementId = (integer) get_option('clean_url_identifier_element');
+
+        $this->_record_identifier = $this->getParam('record_identifier');
+
+        // Select table.
+        switch ($this->_record_type) {
+            case 'Item':
+                $sqlFrom = "FROM {$db->Item} records";
+                break;
+            case 'File':
+                $sqlFrom = "FROM {$db->File} records";
+                break;
+        }
+
+        // Use of ordered placeholders.
+        $bind = array();
+
+        // Check the dublin core identifier of the record.
+        $prefix = get_option('clean_url_identifier_prefix');
+        $bind[] = $prefix . $this->_record_identifier;
+        // Check with a space between prefix and identifier too.
+        $bind[] = $prefix . ' ' . $this->_record_identifier;
+
+        // Check only lowercase if needed.
+        if (get_option('clean_url_case_insensitive') != '1') {
+            $sql_text = "
+                AND (element_texts.text = ?
+                    OR element_texts.text = ?)";
+        }
+        else {
+            $bind[0] = strtolower($bind[0]);
+            $bind[1] = strtolower($bind[1]);
+            $sql_text = "
+                AND (LOWER(element_texts.text) = ?
+                    OR LOWER(element_texts.text) = ?)";
+        }
+
+        // Checks if url contains generic or true collection.
+        $sqlWhereCollection = '';
+        if ($this->_collection_id) {
+            switch ($this->_record_type) {
+                case 'Item':
+                    $sqlWhereCollection = 'AND records.collection_id = ?';
+                    $bind[] = $this->_collection_id;
+                    break;
+                case 'File':
+                    $sqlFrom .= "
+                        JOIN {$db->Item} items
+                            ON records.item_id = items.id";
+                    $sqlWhereCollection = 'AND items.collection_id = ?';
+                    $bind[] = $this->_collection_id;
+                    break;
+            }
+        }
+
+        $sqlWhereRecordType = 'AND element_texts.record_type = "' . $this->_record_type . '"';
+
+        $sql = "
+            SELECT records.id
+            $sqlFrom
+                JOIN {$db->ElementText} element_texts
+                    ON records.id = element_texts.record_id
+                        AND element_texts.record_type = '$this->_record_type'
+            WHERE element_texts.element_id = '$elementId'
+                AND (element_texts.text = ?
+                    OR element_texts.text = ?)
+                $sqlWhereCollection
+                $sqlWhereRecordType
+            LIMIT 1
+        ";
+        $id = $db->fetchOne($sql, $bind);
+
+        // Additional check for item identifier : the file should belong to item.
+        // TODO Include this in the query.
+        if ($id && !empty($this->_item_identifier) && $this->_record_type == 'File') {
+            // Check if the found file belongs to the item.
+            $file = get_record_by_id('File', $id);
+            if (!$this->_checkItemFile($file)) {
+                return null;
+            }
+        }
+
+        return $id;
     }
 
     /**
@@ -180,13 +326,13 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $item = $file->getItem();
 
         // Check if the found file belongs to the item.
-        if (!empty($this->_item_record_identifier)) {
+        if (!empty($this->_item_identifier)) {
             // Get the item identifier.
             $item_identifier = $this->view->getRecordIdentifier($item);
 
             // Check identifier and id of item.
-            if (strtolower($this->_item_record_identifier) != strtolower($item_identifier)
-                    && $this->_item_record_identifier != $item->id
+            if (strtolower($this->_item_identifier) != strtolower($item_identifier)
+                    && $this->_item_identifier != $item->id
                 ) {
                 return false;
             }
@@ -195,126 +341,27 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         return true;
     }
 
-    /**
-     * Routes a clean url of an item to the default url.
-     *
-     * @return id
-     *   Id of the record.
-     */
-    protected function _routeRecord()
+    protected function _setCollectionId()
     {
-        $db = get_db();
-        $elementId = (integer) get_option('clean_url_identifier_element');
-
-        // Identifiers to check.
-        $this->_record_identifier = $this->_getParam('record-identifier');
-        $this->_collection_id = $this->_getParam('collection_id');
-        $this->_item_record_identifier = $this->_getParam('item-record-identifier');
-
-        // Select table.
-        switch ($this->_recordType) {
-            case 'Item':
-                $sql_from = "FROM {$db->Item} records";
-                break;
-            case 'File':
-                $sql_from = "FROM {$db->File} records";
-                break;
+        if ($this->_collection_identifier) {
+            $this->_collection_id = $this->view->getRecordFromIdentifier($this->_collection_identifier, 'Collection', false, true);
         }
-
-        // Use of ordered placeholders.
-        $bind = array();
-
-        // Check the dublin core identifier of the record.
-        $bind[] = get_option('clean_url_identifier_prefix') . $this->_record_identifier;
-        // Check with a space between prefix and identifier too.
-        $bind[] = get_option('clean_url_identifier_prefix') . ' ' . $this->_record_identifier;
-
-        // Check only lowercase if needed.
-        if (get_option('clean_url_case_insensitive') != '1') {
-            $sql_text = "
-                    AND (element_texts.text = ?
-                        OR element_texts.text = ?)";
-        }
-        else {
-            $bind[0] = strtolower($bind[0]);
-            $bind[1] = strtolower($bind[1]);
-            $sql_text = "
-                    AND (LOWER(element_texts.text) = ?
-                        OR LOWER(element_texts.text) = ?)";
-        }
-
-        // Checks if url contains generic or true collection.
-        $sql_collection = '';
-        if ($this->_collection_id) {
-            switch ($this->_recordType) {
-                case 'Item':
-                    $sql_collection = 'AND records.collection_id = ?';
-                    $bind[] = $this->_collection_id;
-                    break;
-                case 'File':
-                    $sql_from .= "
-                        JOIN {$db->Item} items
-                            ON records.item_id = items.id";
-                    $sql_collection = 'AND items.collection_id = ?';
-                    $bind[] = $this->_collection_id;
-                    break;
-            }
-        }
-
-        // Checks if prefixes for items and files are the same (currently not recommended).
-        if (get_option('clean_url_items_generic') != get_option('clean_url_files_generic')) {
-            $sql_record_type = 'AND (element_texts.record_type = "Item" OR element_texts.record_type = "File")';
-        }
-        else {
-            $sql_record_type = 'AND element_texts.record_type = "' . $this->_recordType . '"';
-        }
-
-        $sql = "
-            SELECT records.id
-            $sql_from
-                JOIN {$db->ElementText} element_texts
-                    ON records.id = element_texts.record_id
-                        AND element_texts.record_type = '$this->_recordType'
-            WHERE element_texts.element_id = '$elementId'
-                AND (element_texts.text = ?
-                    OR element_texts.text = ?)
-                $sql_collection
-                $sql_record_type
-            LIMIT 1
-        ";
-        $id = $db->fetchOne($sql, $bind);
-
-        // Additional check for item identifier : the file should belong to item.
-        // TODO Include this in the query.
-        if ($id && !empty($this->_item_record_identifier) && $this->_recordType == 'File') {
-            // Check if the found file belongs to the item.
-            $file = get_record_by_id('File', $id);
-            if (!$this->_checkItemFile($file)) {
-                return null;
-            }
-        }
-
-        return $id;
+        return $this->_collection_id;
     }
 
-    public function collectionShowAction()
+    protected function _setItemId()
     {
-        return $this->forward('show', 'collections', 'default', array(
-            'module' => null,
-            'controller' => 'collections',
-            'action' => 'show',
-            'record_type' => 'Collection',
-            'id' => $this->_getParam('collection_id'),
-        ));
+        if ($this->_item_identifier) {
+            $this->_item_id = $this->view->getRecordFromIdentifier($this->_item_identifier, 'Item', false, true);
+        }
+        return $this->_item_id;
     }
 
-    public function itemsBrowseAction()
+    protected function _setFileId()
     {
-        return $this->forward('browse', 'items', 'default', array(
-            'module' => null,
-            'controller' => 'items',
-            'action' => 'browse',
-            'record_type' => 'Item',
-        ));
+        if ($this->_file_identifier) {
+            $this->_file_id = $this->view->getRecordFromIdentifier($this->_file_identifier, 'File', false, true);
+        }
+        return $this->_file_id;
     }
 }
