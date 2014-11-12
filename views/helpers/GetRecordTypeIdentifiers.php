@@ -1,78 +1,66 @@
 <?php
 /**
- * Clean Url Get Record Identifier
+ * Clean Url Get Record Type Identifiers
  */
 
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
+class Omeka_View_Helper_GetRecordTypeIdentifiers extends Zend_View_Helper_Abstract
 {
     /**
-     * Return the identifier of a record, if any. It can be sanitized.
+     * Return identifiers for a record type, if any. It can be sanitized.
      *
-     * @param Omeka_Record_AbstractRecord|string $record
+     * @param string $recordType Should be "Collection", "Item" or "File".
      * @param boolean $sanitize Sanitize the identifier or not.
      *
-     * @return string
-     *   Identifier of the record, if any, else empty string.
+     * @return array Associative array of record id and identifiers.
      */
-    public function getRecordIdentifier($record, $sanitize = true)
+    public function getRecordTypeIdentifiers($recordType, $sanitize = true)
     {
-        // Get the current record from the view if passed as a string.
-        if (is_string($record)) {
-            $record = $this->view->getCurrentRecord($record);
-        }
-        if (empty($record)) {
-            return '';
-        }
-        if (!($record instanceof Omeka_Record_AbstractRecord)) {
-            throw new Omeka_View_Exception(__('Invalid record passed while getting record URL.'));
+        if (!in_array($recordType, array('Collection', 'Item', 'File'))) {
+            return array();
         }
 
         // Use a direct query in order to improve speed.
         $db = get_db();
         $elementId = (integer) get_option('clean_url_identifier_element');
-        $bind = array(
-            get_class($record),
-            $record->id,
-        );
+        $bind = array();
 
         $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
             // Keep only the identifier without the configured prefix.
             $prefixLenght = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLenght . '))';
-            $sqlWhereText = 'AND element_texts.text LIKE ?';
+            $sqlSelect = 'SELECT element_texts.record_id, TRIM(SUBSTR(element_texts.text, ' . $prefixLenght . '))';
+            $sqlWereText = 'AND element_texts.text LIKE ?';
             $bind[] = $prefix . '%';
         }
         else {
-            $sqlSelect = 'SELECT element_texts.text';
-            $sqlWhereText = '';
+            $sqlSelect = 'SELECT element_texts.record_id, element_texts.text';
+            $sqlWereText = '';
         }
 
+        // The "order by id DESC" allows to get automatically the first row in
+        // php result and avoids a useless subselect in sql (useless because in
+        // almost all cases, there is only one identifier).
         $sql = "
             $sqlSelect
             FROM {$db->ElementText} element_texts
             WHERE element_texts.element_id = '$elementId'
-                AND element_texts.record_type = ?
-                AND element_texts.record_id = ?
-                $sqlWhereText
-            ORDER BY element_texts.id
-            LIMIT 1
+                AND element_texts.record_type = '$recordType'
+                $sqlWereText
+            ORDER BY element_texts.record_id, element_texts.id DESC
         ";
-        $identifier = $db->fetchOne($sql, $bind);
+        $result = $db->fetchPairs($sql, $bind);
 
-        if (empty($identifier)) {
-            return '';
-        }
-
-        // Sanitize the identifier in order to use it securely in a clean url.
+        // Sanitize identifiers in order to use it securely in a clean url.
         if ($sanitize) {
-            $identifier = $this->_sanitizeString(trim($identifier, ' /\\'));
+            foreach ($result as &$identifier) {
+                $identifier = $this->_sanitizeString(trim($identifier, ' /\\'));
+            }
         }
 
-        return $identifier;
+        return $result;
     }
 
     /**

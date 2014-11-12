@@ -25,7 +25,8 @@ optimized link.
 * If multiple identifiers are set, the first one will be used to set the default
 url, but other ones can be used to get the record.
 * If the same identifier is used for multiple records, only the first record can
-be got. Currently, not check is done on duplicate names.
+be got.
+* Currently, no check is done when duplicate identifiers are set.
 * A main path can be added before collection names, as "collections" or "library":
 `http://example.com/main_path/my_collection/dc:identifier`.
 * A generic and persistent url for all items can be used too, for example
