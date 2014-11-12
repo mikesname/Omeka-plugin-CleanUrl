@@ -25,7 +25,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     public function init()
     {
         // Reset script paths (will be regenerated in forwarded destination).
-        get_view()->setScriptPath(null);
+        $this->view->setScriptPath(null);
     }
 
     public function collectionShowAction()
@@ -71,7 +71,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // If 0, this is possible (item without collection, or generic route).
         $result = $this->_setCollectionId();
         if (is_null($result)) {
-            return $this->forward('not-found', 'error', 'default');
+            throw new Omeka_Controller_Exception_404;
         }
 
         $this->_record_type = 'Item';
@@ -81,14 +81,14 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             // Check if the found item belongs to the collection, if any.
             if (!empty($this->_collection_id)
                     && $this->_collection_id != $record->collection_id
                 ) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             $id = $this->_record_identifier;
@@ -115,7 +115,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             $id = $this->_record_identifier;
@@ -155,13 +155,13 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // If 0, this is possible (item without collection, or generic route).
         $result = $this->_setCollectionId();
         if (is_null($result)) {
-            return $this->forward('not-found', 'error', 'default');
+            throw new Omeka_Controller_Exception_404;
         }
         $this->_item_identifier = $this->getParam('item_identifier');
         // If 0, this is possible (generic route).
         $result = $this->_setItemId();
         if (is_null($result)) {
-            return $this->forward('not-found', 'error', 'default');
+            throw new Omeka_Controller_Exception_404;
         }
         $this->_record_type = 'File';
         $id = $this->_routeRecord();
@@ -170,17 +170,17 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         if (!$id) {
             $record = get_record_by_id($this->_record_type, $this->_record_identifier);
             if (!$record) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             // Check if the found file belongs to the collection.
             if (!$this->_checkCollectionFile($record)) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             // Check if the found file belongs to the item.
             if (!$this->_checkItemFile($record)) {
-                return $this->forward('not-found', 'error', 'default');
+                throw new Omeka_Controller_Exception_404;
             }
 
             $id = $this->_record_identifier;
