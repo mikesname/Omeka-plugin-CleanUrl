@@ -44,7 +44,6 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
                 }
 
                 $generic = get_option('clean_url_collection_generic');
-                $generic = $generic ? $generic . '/' : '';
 
                 return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
                 break;
@@ -62,7 +61,6 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
                 switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_item_generic');
-                        $generic = $generic ? $generic . '/' : '';
                         return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
                     case 'collection':
@@ -88,12 +86,10 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
                 switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_file_generic');
-                        $generic = $generic ? $generic . '/' : '';
                         return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
 
                     case 'generic_item':
                         $generic = get_option('clean_url_file_generic');
-                        $generic = $generic ? $generic . '/' : '';
 
                         $item = $record->getItem();
                         $item_identifier = $this->view->getRecordIdentifier($item);
@@ -150,19 +146,15 @@ class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstrac
             $withMainPath = true;
         }
 
-        $main_path = '';
-        if ($withMainPath) {
-            $main_path = get_option('clean_url_main_path');
-            $main_path = $main_path ? '/' . $main_path : '';
-        }
-
         switch ($withBasePath) {
-            case 'public': $base_path = PUBLIC_BASE_URL; break;
-            case 'admin': $base_path = ADMIN_BASE_URL; break;
-            case 'current': $base_path = CURRENT_BASE_URL; break;
-            default: $base_path = '';
+            case 'public': $basePath = PUBLIC_BASE_URL; break;
+            case 'admin': $basePath = ADMIN_BASE_URL; break;
+            case 'current': $basePath = CURRENT_BASE_URL; break;
+            default: $basePath = '';
         }
 
-        return ($absolute ? get_view()->serverUrl() : '') . $base_path . $main_path . '/';
+        $mainPath = $withMainPath ? get_option('clean_url_main_path') : '';
+
+        return ($absolute ? get_view()->serverUrl() : '') . $basePath . '/' . $mainPath;
     }
 }

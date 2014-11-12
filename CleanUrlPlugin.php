@@ -33,10 +33,10 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_collection_generic' => '',
         'clean_url_item_default' => 'generic',
         'clean_url_item_alloweds' => 'a:1:{i:0;s:7:"generic";}',
-        'clean_url_item_generic' => 'document',
+        'clean_url_item_generic' => 'document/',
         'clean_url_file_default' => 'generic',
         'clean_url_file_alloweds' => 'a:1:{i:0;s:7:"generic";}',
-        'clean_url_file_generic' => 'file',
+        'clean_url_file_generic' => 'file/',
         'clean_url_display_admin_browse_identifier' => true,
     );
 
@@ -90,6 +90,20 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         if (version_compare($oldVersion, '2.9', '<')) {
             set_option('clean_url_identifier_element', $this->_options['clean_url_identifier_element']);
         }
+
+        if (version_compare($oldVersion, '2.9.1', '<')) {
+            foreach (array(
+                    'clean_url_main_path',
+                    'clean_url_collection_generic',
+                    'clean_url_item_generic',
+                    'clean_url_file_generic',
+                ) as $option) {
+                $path = get_option($option);
+                if ($path) {
+                    set_option($option, $path . '/');
+                }
+            }
+        }
     }
 
     /**
@@ -131,7 +145,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 'clean_url_item_generic',
                 'clean_url_file_generic',
             ) as $posted) {
-            $post[$posted] = isset($post[$posted]) ? $this->_sanitizeString(trim($post[$posted])) : '';
+            $value = trim($post[$posted], ' /');
+            $post[$posted] = empty($value) ? '' : $this->_sanitizeString($value) . '/';
         }
 
         // The default url should be allowed for items and files.
@@ -178,12 +193,12 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         $router = $args['router'];
+        $view = get_view();
 
-        $main_path = get_option('clean_url_main_path');
-        $main_path = $main_path ? $main_path . '/' : '';
-
-        $collection_generic = get_option('clean_url_collection_generic');
-        $collection_generic = $collection_generic ? $collection_generic . '/' : '';
+        $mainPath = get_option('clean_url_main_path');
+        $collectionGeneric = get_option('clean_url_collection_generic');
+        $itemGeneric = get_option('clean_url_item_generic');
+        $fileGeneric = get_option('clean_url_file_generic');
 
         $allowedForItems = unserialize(get_option('clean_url_item_alloweds'));
         $allowedForFiles = unserialize(get_option('clean_url_file_alloweds'));
@@ -193,14 +208,13 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         // TODO Recheck in order to simplify or let.
         $collections = get_records('Collection', array(), 0);
         foreach ($collections as $collection) {
-            $view = get_view();
-            $collection_identifier = $view->getRecordIdentifier($collection);
-            if (empty($collection_identifier)) {
+            $collectionIdentifier = $view->getRecordIdentifier($collection);
+            if (empty($collectionIdentifier)) {
                 continue;
             }
 
             // Add a route for the collection show view.
-            $route = $main_path . $collection_generic . $collection_identifier;
+            $route = $mainPath . $collectionGeneric . $collectionIdentifier;
             $router->addRoute('cleanUrl_collection_' . $collection->id, new Zend_Controller_Router_Route(
                 $route,
                 array(
@@ -224,7 +238,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
             // Add a collection route for items.
             if (in_array('collection', $allowedForItems)) {
-                $route = $main_path . $collection_identifier;
+                $route = $mainPath . $collectionIdentifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_item', new Zend_Controller_Router_Route(
                     $route . '/:record-identifier',
                     array(
@@ -249,7 +263,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
             // Add a collection route for files.
             if (in_array('collection', $allowedForFiles)) {
-                $route = $main_path . $collection_identifier;
+                $route = $mainPath . $collectionIdentifier;
                 $router->addRoute('cleanUrl_collection_' . $collection->id . '_file', new Zend_Controller_Router_Route(
                     $route . '/:record-identifier',
                     array(
@@ -274,7 +288,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
             // Add a collection / item route for files.
             if (in_array('collection_item', $allowedForFiles)) {
-                $route = $main_path . $collection_identifier;
+                $route = $mainPath . $collectionIdentifier;
                 $router->addRoute('cleanUrl_collection_item_' . $collection->id . '_file', new Zend_Controller_Router_Route(
                     $route . '/:item-record-identifier/:record-identifier',
                     array(
@@ -300,8 +314,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Add a generic route for items.
         if (in_array('generic', $allowedForItems)) {
-            $item_generic = get_option('clean_url_item_generic');
-            $route = $main_path . $item_generic;
+            $route = $mainPath . trim($itemGeneric, '/');
             $router->addRoute('cleanUrl_generic_items_browse', new Zend_Controller_Router_Route(
                 $route,
                 array(
@@ -340,10 +353,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Add a generic route for files.
         if (in_array('generic', $allowedForFiles)) {
-            $file_generic = get_option('clean_url_file_generic');
-            $route = $main_path . $file_generic;
+            $route = $mainPath . $fileGeneric;
             $router->addRoute('cleanUrl_generic_file', new Zend_Controller_Router_Route(
-                $route . '/:record-identifier',
+                $route . ':record-identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -354,7 +366,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             // Add a lowercase route to prevent some practical issues.
             if ($route != strtolower($route)) {
                 $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:record-identifier',
+                    strtolower($route) . ':record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
@@ -366,10 +378,9 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Add a generic / item route for files.
         if (in_array('generic_item', $allowedForFiles)) {
-            $file_generic = get_option('clean_url_file_generic');
-            $route = $main_path . $file_generic;
+            $route = $mainPath . $fileGeneric;
             $router->addRoute('cleanUrl_generic_item_file', new Zend_Controller_Router_Route(
-                $route . '/:item-record-identifier/:record-identifier',
+                $route . ':item-record-identifier/:record-identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
@@ -380,7 +391,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             // Add a lowercase route to prevent some practical issues.
             if ($route != strtolower($route)) {
                 $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
-                    strtolower($route) . '/:item-record-identifier/:record-identifier',
+                    strtolower($route) . ':item-record-identifier/:record-identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',

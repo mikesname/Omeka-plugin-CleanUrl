@@ -73,7 +73,7 @@
         <div class='inputs five columns omega'>
             <?php echo $view->formText('clean_url_main_path', get_option('clean_url_main_path'), NULL); ?>
             <p class="explanation">
-                <?php echo __('The main path to add in the beginning of the url, for example "collections", "library" or "archives".'); ?>
+                <?php echo __('The main path to add in the beginning of the url, for example "collections/", "library/" or "archives/".'); ?>
                 <?php echo __('Let empty if you do not want any.'); ?>
             </p>
         </div>
@@ -88,7 +88,7 @@
             <?php echo $view->formText('clean_url_collection_generic', get_option('clean_url_collection_generic'), NULL); ?>
             <p class="explanation">
                 <?php echo __('This main path is added before the collection name, for example "/ my_collections / collection identifier".'); ?>
-                <?php echo __('Let empty if you do not want any ("/ collection identifier").'); ?>
+                <?php echo __('Let empty if you do not want any, so path will be "/ collection identifier".'); ?>
             </p>
         </div>
     </div>
@@ -140,7 +140,7 @@
         <div class='inputs five columns omega'>
             <?php echo $view->formText('clean_url_item_generic', get_option('clean_url_item_generic'), NULL); ?>
             <p class="explanation">
-                <?php echo __('The generic name to use if generic identifier is selected above, for example "item", "record" or "doc".'); ?>
+                <?php echo __('The generic name to use if generic identifier is selected above, for example "item/", "record/" or "doc/".'); ?>
             </p>
         </div>
     </div>
@@ -194,7 +194,7 @@
         <div class='inputs five columns omega'>
             <?php echo $view->formText('clean_url_file_generic', get_option('clean_url_file_generic'), NULL); ?>
             <p class="explanation">
-                <?php echo __('The generic name to use if generic identifier is selected above, for example "file", "record" or "image".'); ?>
+                <?php echo __('The generic name to use if generic identifier is selected above, for example "file/", "record/" or "image/".'); ?>
                 <?php echo __('In the first case, currently, it should be different from the name used for items.'); ?>
             </p>
         </div>
