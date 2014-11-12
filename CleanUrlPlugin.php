@@ -33,10 +33,10 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_main_path' => '',
         'clean_url_collection_generic' => '',
         'clean_url_item_default' => 'generic',
-        'clean_url_item_alloweds' => 'a:1:{i:0;s:7:"generic";}',
+        'clean_url_item_alloweds' => 'a:2:{i:0;s:7:"generic";i:1;s:10:"collection";}',
         'clean_url_item_generic' => 'document/',
         'clean_url_file_default' => 'generic',
-        'clean_url_file_alloweds' => 'a:1:{i:0;s:7:"generic";}',
+        'clean_url_file_alloweds' => 'a:2:{i:0;s:7:"generic";i:1;s:15:"collection_item";}',
         'clean_url_file_generic' => 'file/',
         'clean_url_display_admin_browse_identifier' => true,
     );
