@@ -8,11 +8,7 @@
 <p>
 <?php
     echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/item_identifier.') . '<br />';
-    echo __('A main path can be added before collection names, for example "collections", "library" or "archives", to get Urls like http://example.com/my_archives/collection_identifier/item_identifier.') . '<br />';
-    echo __('If an item or a file has no identifier, its id is used, for example "http://example.com/library/image/20/13", depending on selected formats.');
-    echo '<br />';
-    echo '<strong>' . __('Warning:') . '</strong>' . ' ';
-    echo __('Currently, some combinations of formats for urls are not possible. So check it before use.');
+    echo __('See %s for more information.', '<a href="https://github.com/Daniel-KM/CleanUrl">ReadMe</a>');
 ?>
 </p>
 <fieldset id="fieldset-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
