@@ -16,7 +16,7 @@
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
+class CleanUrl_View_Helper_RecordUrl extends Zend_View_Helper_Abstract
 {
     /**
      * Return a URL to a record.

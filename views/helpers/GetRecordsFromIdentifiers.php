@@ -6,7 +6,7 @@
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Abstract
+class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Abstract
 {
     private static $_prefix;
 

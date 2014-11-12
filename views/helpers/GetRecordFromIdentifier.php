@@ -9,7 +9,7 @@
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstract
+class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abstract
 {
     /**
      * Get record from identifier

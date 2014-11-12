@@ -6,7 +6,7 @@
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
+class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
 {
     /**
      * Return the identifier of a record, if any. It can be sanitized.

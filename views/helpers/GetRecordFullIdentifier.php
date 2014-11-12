@@ -13,7 +13,7 @@
 /**
  * @package Omeka\Plugins\CleanUrl\views\helpers
  */
-class Omeka_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstract
+class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstract
 {
     /**
      * Get clean url path of a record.
