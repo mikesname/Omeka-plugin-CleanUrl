@@ -97,10 +97,14 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     /**
      * Shows plugin configuration page.
      */
-    public function hookConfigForm()
+    public function hookConfigForm($args)
     {
-        echo get_view()->partial(
-            'plugins/clean-url-config-form.php'
+        $view = $args['view'];
+        echo $view->partial(
+            'plugins/clean-url-config-form.php',
+            array(
+                'view' => $view,
+            )
         );
     }
 
@@ -113,26 +117,34 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     {
         $post = $args['post'];
 
-        // Save settings.
-        set_option('clean_url_identifier_prefix', $this->_sanitizePrefix($post['clean_url_identifier_prefix']));
-        set_option('clean_url_case_insensitive', (int) (boolean) $post['clean_url_case_insensitive']);
-        set_option('clean_url_main_path', $this->_sanitizeString(trim($post['clean_url_main_path'], ' /\\')));
-        set_option('clean_url_collection_generic', $this->_sanitizeString(trim($post['clean_url_collection_generic'], ' /\\')));
-        set_option('clean_url_item_default', $post['clean_url_item_default']);
-        // The default url should be allowed.
-        $alloweds = $post['clean_url_item_alloweds'];
-        $alloweds[] = $post['clean_url_item_default'];
-        $alloweds = array_values(array_unique($alloweds));
-        set_option('clean_url_item_alloweds', serialize($alloweds));
-        set_option('clean_url_item_generic', $this->_sanitizeString(trim($post['clean_url_item_generic'], ' /\\')));
-        set_option('clean_url_file_default', $post['clean_url_file_default']);
-        // The default url should be allowed.
-        $alloweds = $post['clean_url_file_alloweds'];
-        $alloweds[] = $post['clean_url_file_default'];
-        $alloweds = array_values(array_unique($alloweds));
-        set_option('clean_url_file_alloweds', serialize($alloweds));
-        set_option('clean_url_file_generic', $this->_sanitizeString(trim($post['clean_url_file_generic'], ' /\\')));
-        set_option('clean_url_display_admin_browse_identifier', (int) (boolean) $post['clean_url_display_admin_browse_identifier']);
+        // Sanitize first.
+        $post['clean_url_identifier_prefix'] = $this->_sanitizePrefix($post['clean_url_identifier_prefix']);
+        foreach (array(
+                'clean_url_main_path',
+                'clean_url_collection_generic',
+                'clean_url_item_generic',
+                'clean_url_file_generic',
+            ) as $posted) {
+            $post[$posted] = isset($post[$posted]) ? $this->_sanitizeString(trim($post[$posted])) : '';
+        }
+
+        // The default url should be allowed for items and files.
+        $post['clean_url_item_alloweds'][] = $post['clean_url_item_default'];
+        $post['clean_url_item_alloweds'] =  array_values(array_unique($post['clean_url_item_alloweds']));
+        $post['clean_url_file_alloweds'][] = $post['clean_url_file_default'];
+        $post['clean_url_file_alloweds'] =  array_values(array_unique($post['clean_url_file_alloweds']));
+
+        foreach (array(
+                'clean_url_item_alloweds',
+                'clean_url_file_alloweds',
+            ) as $posted) {
+            $post[$posted] = isset($post[$posted])
+                ? serialize($post[$posted])
+                : serialize(array());
+        }
+        foreach ($post as $key => $value) {
+            set_option($key, $value);
+        }
     }
 
     /**
@@ -155,11 +167,11 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookDefineRoutes($args)
     {
-        $router = $args['router'];
-
         if (is_admin_theme()) {
             return;
         }
+
+        $router = $args['router'];
 
         $main_path = get_option('clean_url_main_path');
         $main_path = $main_path ? $main_path . '/' : '';

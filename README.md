@@ -5,20 +5,32 @@ Clean Url (plugin for Omeka)
 Summary
 -------
 
-This plugin for [Omeka] allows to have clean, readable and search engine
-optimized URLs like http://example.com/my_collection/dc:identifier instead of
-http://example.com/items/show/internal_code.
+[Clean Url] is a plugin for [Omeka] allows to have clean, readable and search
+engine optimized URLs like `http://example.com/my_collection/dc:identifier`
+instead of `http://example.com/items/show/internal_code`.
 
-A main path can be added before collection names, as "collections" or "library":
-http://example.com/main_path/my_collection/dc:identifier.
+See the example of the digitized heritage of the library of [Mines ParisTech].
 
-A generic and persistent url for all items can be used too, for example
-http://example.com/document/dc:identifier.
 
-Clean urls are automatically displayed in public theme.
+Usage
+-----
 
-Multiple urls can be set, in particular to have a permalink and a search engine
+Simply set an identifier for each document in the field `Dublin Core:Identifier`.
+
+* If not set, the identifier will be the default id of the record.
+* A prefix can be added if you have other data in the same field.
+* Multiple urls can be set, in particular to have a permalink and a search engine
 optimized link.
+* If multiple identifiers are set, the first one will be used to set the default
+url, but other ones can be used to get the record.
+* If the same identifier is used for multiple records, only the first record can
+be got. Currently, not check is done on duplicate names.
+* A main path can be added before collection names, as "collections" or "library":
+`http://example.com/main_path/my_collection/dc:identifier`.
+* A generic and persistent url for all items can be used too, for example
+`http://example.com/document/dc:identifier`.
+* Clean urls are automatically displayed in public theme and they are not used
+in the admin theme.
 
 
 Installation
@@ -86,13 +98,14 @@ Copyright
 Based on ItemId of Jim Safley (see [GitHub ItemId])
 
 
-[Omeka]: http://www.omeka.org "Omeka.org"
-[Clean Url issues]: https://github.com/Daniel-KM/CleanUrl/Issues "GitHub CleanUrl"
-[CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html "CeCILL v2.1"
-[GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL v3"
+[Clean Url]: https://github.com/Daniel-KM/CleanUrl
+[Omeka]: http://www.omeka.org
+[Clean Url issues]: https://github.com/Daniel-KM/CleanUrl/Issues
+[CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
+[GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
 [OSI]: http://opensource.org
 [Daniel-KM]: http://github.com/Daniel-KM "Daniel Berthereau"
-[École des Ponts ParisTech]: http://bibliotheque.enpc.fr "École des Ponts ParisTech / ENPC"
-[Mines ParisTech]: http://bib.mines-paristech.fr "Mines ParisTech / ENSMP"
-[GitHub ItemId]: https://github.com/jimsafley/ItemId "GitHub ItemId"
+[École des Ponts ParisTech]: http://bibliotheque.enpc.fr
+[Mines ParisTech]: https://patrimoine.mines-paristech.fr
+[GitHub ItemId]: https://github.com/jimsafley/ItemId

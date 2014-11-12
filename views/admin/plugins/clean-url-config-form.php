@@ -1,4 +1,4 @@
-<style>
+<style type="text/css">
     ul.checkboxes {
         list-style: none;
         margin-left: 5px;
@@ -7,11 +7,11 @@
 </style>
 <p>
 <?php
-    $view = get_view();
     echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/dc:identifier.') . '<br />';
     echo __('A main path can be added before collection names, for example "collections", "library" or "archives", to get Urls like http://example.com/my_archives/my_collection/dc:identifier.') . '<br />';
     echo __('If an item or a file has no identifier, its id is used, for example "http://example.com/library/image/20/13", depending on selected formats.');
-    echo '<strong>' . __('Warning') . '</strong>';
+    echo '<br />';
+    echo '<strong>' . __('Warning:') . '</strong>' . ' ';
     echo __('Currently, some combinations of formats for urls are not possible. So check it before use.');
 ?>
 </p>
@@ -63,8 +63,8 @@
         <div class='inputs five columns omega'>
             <?php echo $view->formText('clean_url_collection_generic', get_option('clean_url_collection_generic'), NULL); ?>
             <p class="explanation">
-                <?php echo __('This main path is added before the collection name, for example "my_collections".'); ?>
-                <?php echo __("Let empty if you don't want any."); ?>
+                <?php echo __('This main path is added before the collection name, for example "/ my_collections / dc:identifier".'); ?>
+                <?php echo __('Let empty if you do not want any ("/ dc:identifier").'); ?>
             </p>
         </div>
     </div>
@@ -130,9 +130,9 @@
             <?php
             $checkboxes = array(
                 'generic' => '/ generic / dc:identifier',
-                'generic_item' => '/ generic / item identifier / dc:identifier',
+                'generic_item' => '/ generic / item dc:identifier / dc:identifier',
                 'collection' => '/ collection identifier / dc:identifier',
-                'collection_item' => '/ collection identifier / item identifier / dc:identifier',
+                'collection_item' => '/ collection identifier / item dc:identifier / dc:identifier',
             );
             echo $view->formRadio('clean_url_file_default', get_option('clean_url_file_default'), NULL, $checkboxes); ?>
             <p class="explanation">
