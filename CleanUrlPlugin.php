@@ -216,71 +216,73 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Get all collections identifiers with one query.
         $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', true);
-        // Use one regex for all collections. Default is case insensitve.
-        $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsIdentifiers) . ')';
-        $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route_Regex(
-            $collectionsRegex,
-            array(
-                'module' => 'clean-url',
-                'controller' => 'index',
-                'action' => 'collection-show',
-            ),
-            array(
-                1 => 'record_identifier',
-            ),
-            'collections/show/%d'
-        ));
-
-        // Add a collection route for files.
-        if (in_array('collection', $allowedForFiles)) {
-            $router->addRoute('cleanUrl_collections_file', new Zend_Controller_Router_Route_Regex(
-                $collectionsRegex . '/([^/]+)',
+        if (!empty($collectionsIdentifiers)) {
+            // Use one regex for all collections. Default is case insensitve.
+            $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsIdentifiers) . ')';
+            $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route_Regex(
+                $collectionsRegex,
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
-                    'action' => 'route-collection-file',
+                    'action' => 'collection-show',
                 ),
                 array(
-                    1 => 'collection_identifier',
-                    2 => 'record_identifier',
+                    1 => 'record_identifier',
                 ),
-                'files/show/%d'
+                'collections/show/%d'
             ));
-        }
 
-        // Add a collection / item route for files.
-        if (in_array('collection_item', $allowedForFiles)) {
-            $router->addRoute('cleanUrl_collections_item_file', new Zend_Controller_Router_Route_Regex(
-                $collectionsRegex . '/([^/]+)/([^/]+)',
-                array(
-                    'module' => 'clean-url',
-                    'controller' => 'index',
-                    'action' => 'route-collection-item-file',
-                ),
-                array(
-                    1 => 'collection_identifier',
-                    2 => 'item_identifier',
-                    3 => 'record_identifier',
-                ),
-                'files/show/%d'
-            ));
-        }
+            // Add a collection route for files.
+            if (in_array('collection', $allowedForFiles)) {
+                $router->addRoute('cleanUrl_collections_file', new Zend_Controller_Router_Route_Regex(
+                    $collectionsRegex . '/([^/]+)',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-file',
+                    ),
+                    array(
+                        1 => 'collection_identifier',
+                        2 => 'record_identifier',
+                    ),
+                    'files/show/%d'
+                ));
+            }
 
-        // Add a collection route for items.
-        if (in_array('collection', $allowedForItems)) {
-            $router->addRoute('cleanUrl_collections_item', new Zend_Controller_Router_Route_Regex(
-                $collectionsRegex . '/([^/]+)',
-                array(
-                    'module' => 'clean-url',
-                    'controller' => 'index',
-                    'action' => 'route-collection-item',
-                ),
-                array(
-                    1 => 'collection_identifier',
-                    2 => 'record_identifier',
-                ),
-                'items/show/%d'
-            ));
+            // Add a collection / item route for files.
+            if (in_array('collection_item', $allowedForFiles)) {
+                $router->addRoute('cleanUrl_collections_item_file', new Zend_Controller_Router_Route_Regex(
+                    $collectionsRegex . '/([^/]+)/([^/]+)',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-item-file',
+                    ),
+                    array(
+                        1 => 'collection_identifier',
+                        2 => 'item_identifier',
+                        3 => 'record_identifier',
+                    ),
+                    'files/show/%d'
+                ));
+            }
+
+            // Add a collection route for items.
+            if (in_array('collection', $allowedForItems)) {
+                $router->addRoute('cleanUrl_collections_item', new Zend_Controller_Router_Route_Regex(
+                    $collectionsRegex . '/([^/]+)',
+                    array(
+                        'module' => 'clean-url',
+                        'controller' => 'index',
+                        'action' => 'route-collection-item',
+                    ),
+                    array(
+                        1 => 'collection_identifier',
+                        2 => 'record_identifier',
+                    ),
+                    'items/show/%d'
+                ));
+            }
         }
 
         // Add a generic route for files.
