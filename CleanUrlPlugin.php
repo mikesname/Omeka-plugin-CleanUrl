@@ -218,7 +218,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', true);
         if (!empty($collectionsIdentifiers)) {
             // Use one regex for all collections. Default is case insensitve.
-            $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsIdentifiers) . ')';
+            $collectionsRegex = array_map('preg_quote', $collectionsIdentifiers);
+            $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsRegex) . ')';
             $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route_Regex(
                 $collectionsRegex,
                 array(
