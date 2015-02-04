@@ -114,7 +114,7 @@ roll back if needed.
 Troubleshooting
 ---------------
 
-See online issues on the [Clean Url issues] page on GitHub.
+See online issues on the [plugin issues] page on GitHub.
 
 
 License
@@ -161,7 +161,7 @@ Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 
 [Clean Url]: https://github.com/Daniel-KM/CleanUrl
 [Omeka]: http://www.omeka.org
-[Clean Url issues]: https://github.com/Daniel-KM/CleanUrl/Issues
+[plugin issues]: https://github.com/Daniel-KM/CleanUrl/Issues
 [Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
 [CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
