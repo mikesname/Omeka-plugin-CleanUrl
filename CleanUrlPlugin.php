@@ -15,7 +15,6 @@
 class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 {
     protected $_hooks = array(
-        'initialize',
         'install',
         'upgrade',
         'uninstall',
@@ -40,14 +39,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_file_generic' => 'file/',
         'clean_url_display_admin_browse_identifier' => true,
     );
-
-    /**
-     * Initializes the plugin.
-     */
-    public function hookInitialize()
-    {
-        get_view()->addHelperPath(dirname(__FILE__) . '/views/helpers', 'CleanUrl_View_Helper_');
-    }
 
     /**
      * Installs the plugin.
@@ -210,7 +201,17 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         // (most specific) to the first one (most generic).
 
         // Get all collections identifiers with one query.
-        $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', true);
+        // This helper path is needed only for tests, because the route is
+        // loaded before the helpers. It can't be set in the hook Initialize,
+        // because there is no view for long jobs.
+        // TODO Add this path directly in the tests.
+        $pathHelpers = dirname(__FILE__)
+            . DIRECTORY_SEPARATOR . 'views'
+            . DIRECTORY_SEPARATOR . 'helpers';
+        $view = get_view();
+        $view->addHelperPath($pathHelpers, 'CleanUrl_View_Helper_');
+        $collectionsIdentifiers = $view->getRecordTypeIdentifiers('Collection', true);
+
         if (!empty($collectionsIdentifiers)) {
             // Use one regex for all collections. Default is case insensitve.
             $collectionsRegex = array_map('preg_quote', $collectionsIdentifiers);
