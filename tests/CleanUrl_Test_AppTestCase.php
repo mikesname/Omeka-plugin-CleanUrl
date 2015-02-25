@@ -98,6 +98,14 @@ class CleanUrl_Test_AppTestCase extends Omeka_Test_AppTestCase
 
         $this->_view = get_view();
 
+        // Add constraints if derivatives have been added in the config file.
+        $fileDerivatives = Zend_Registry::get('bootstrap')->getResource('Config')->fileDerivatives;
+        if (!empty($fileDerivatives) && !empty($fileDerivatives->paths)) {
+            foreach ($fileDerivatives->paths->toArray() as $type => $path) {
+                set_option($type . '_constraint', 1);
+            }
+        }
+
         $this->_prepareRecords();
         $this->_reloadRoutes();
     }
