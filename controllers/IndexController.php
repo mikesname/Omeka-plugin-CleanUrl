@@ -343,7 +343,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _setCollectionId()
     {
         if ($this->_collection_identifier) {
-            $this->_collection_id = $this->view->getRecordFromIdentifier($this->_collection_identifier, false, 'Collection', true);
+            $this->_collection_id = $this->view->getRecordFromIdentifier($this->_collection_identifier, false, 'Collection', 'id');
         }
         return $this->_collection_id;
     }
@@ -351,7 +351,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _setItemId()
     {
         if ($this->_item_identifier) {
-            $this->_item_id = $this->view->getRecordFromIdentifier($this->_item_identifier, false, 'Item', true);
+            $this->_item_id = $this->view->getRecordFromIdentifier($this->_item_identifier, false, 'Item', 'id');
         }
         return $this->_item_id;
     }
@@ -359,7 +359,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     protected function _setFileId()
     {
         if ($this->_file_identifier) {
-            $this->_file_id = $this->view->getRecordFromIdentifier($this->_file_identifier, false, 'File', true);
+            $this->_file_id = $this->view->getRecordFromIdentifier($this->_file_identifier, false, 'File', 'id');
         }
         return $this->_file_id;
     }
