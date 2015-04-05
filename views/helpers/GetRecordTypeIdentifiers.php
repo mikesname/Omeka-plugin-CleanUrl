@@ -12,11 +12,10 @@ class CleanUrl_View_Helper_GetRecordTypeIdentifiers extends Zend_View_Helper_Abs
      * Return identifiers for a record type, if any. It can be sanitized.
      *
      * @param string $recordType Should be "Collection", "Item" or "File".
-     * @param boolean $sanitize Sanitize the identifier or not.
-     *
+     * @param boolean $rawEncoded Sanitize the identifier for http or not.
      * @return array Associative array of record id and identifiers.
      */
-    public function getRecordTypeIdentifiers($recordType, $sanitize = true)
+    public function getRecordTypeIdentifiers($recordType, $rawEncoded = true)
     {
         if (!in_array($recordType, array('Collection', 'Item', 'File'))) {
             return array();
@@ -53,32 +52,8 @@ class CleanUrl_View_Helper_GetRecordTypeIdentifiers extends Zend_View_Helper_Abs
         ";
         $result = $db->fetchPairs($sql, $bind);
 
-        // Sanitize identifiers in order to use it securely in a clean url.
-        if ($sanitize) {
-            foreach ($result as &$identifier) {
-                $identifier = $this->_sanitizeString(trim($identifier, ' /\\'));
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns a sanitized and unaccentued string for folder or file path.
-     *
-     * @param string $string The string to sanitize.
-     *
-     * @return string The sanitized string to use as a folder or a file name.
-     */
-    private function _sanitizeString($string)
-    {
-        $space = '';
-        $string = trim(strip_tags($string));
-        $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
-        $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml)\;#', '\1', $string);
-        $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
-        $string = preg_replace('#\&[^;]+\;#', '_', $string);
-        $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:' . $space . ']/', '_', $string);
-        return preg_replace('/_+/', '_', $string);
+        return $rawEncoded
+            ? array_map('rawurlencode', $result)
+            : $result;
     }
 }

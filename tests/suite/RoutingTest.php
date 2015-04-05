@@ -28,6 +28,29 @@ class CleanUrl_RoutingTest extends CleanUrl_Test_AppTestCase
         $this->assertModule('default');
         $this->assertController('collections');
         $this->assertAction('show');
+        $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
+    }
+
+    /**
+     * Tests to check routing system for collections with non-ascii characters.
+     */
+    public function testRoutingCollectionsCharacters()
+    {
+        $record = $this->getRecordByTitle('Title of Collection with utf-8 characters, as é');
+        foreach (array(
+                'Identifier of Collection with a space and é character',
+                'Identifier of Collection with a space and %C3%A9 character',
+                'Identifier%20of%20Collection%20with%20a%20space%20and%20%C3%A9%20character',
+            ) as $value) {
+            $url = $this->baseCollection . $value;
+            $route = 'cleanUrl_collections';
+            $this->dispatch($url);
+            $this->assertRoute($route);
+            $this->assertModule('default');
+            $this->assertController('collections');
+            $this->assertAction('show');
+            $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
+         }
     }
 
     /**
@@ -39,15 +62,39 @@ class CleanUrl_RoutingTest extends CleanUrl_Test_AppTestCase
     public function testRoutingItem()
     {
         $record = $this->getRecordByTitle('Title of Item #1');
+        $collectionIdentifier = 'Identifier_of_Collection_1';
+        $itemIdentifier = 'Identifier_of_Item_1';
         foreach (array(
-                $this->baseItem . 'Identifier_of_Item_1' => 'cleanUrl_generic_item',
-                $this->baseCollection . 'Identifier_of_Collection_1' . '/' . 'Identifier_of_Item_1' => 'cleanUrl_collections_item',
+                $this->baseItem . $itemIdentifier => 'cleanUrl_generic_item',
+                $this->baseCollection . $collectionIdentifier . '/' . $itemIdentifier => 'cleanUrl_collections_item',
             ) as $url => $route) {
             $this->dispatch($url);
             $this->assertRoute($route);
             $this->assertModule('default');
             $this->assertController('items');
             $this->assertAction('show');
+            $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
+        }
+    }
+
+    /**
+     * Tests to check routing system for items with non-ascii characters.
+     */
+    public function testRoutingItemCharacters()
+    {
+        $record = $this->getRecordByTitle('Title of Item with µ character');
+        $collectionIdentifier = 'Identifier of Collection with a space and é character';
+        $itemIdentifier = 'Identifier of Item with µ character';
+        foreach (array(
+                $this->baseItem . $itemIdentifier => 'cleanUrl_generic_item',
+                $this->baseCollection . $collectionIdentifier . '/' . $itemIdentifier => 'cleanUrl_collections_item',
+            ) as $url => $route) {
+            $this->dispatch($url);
+            $this->assertRoute($route);
+            $this->assertModule('default');
+            $this->assertController('items');
+            $this->assertAction('show');
+            $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
         }
     }
 
@@ -63,17 +110,51 @@ class CleanUrl_RoutingTest extends CleanUrl_Test_AppTestCase
         $this->_reloadRoutes();
 
         $record = $this->getRecordByTitle('Title of File #1');
+        $collectionIdentifier = 'Identifier_of_Collection_1';
+        $itemIdentifier = 'Identifier_of_Item_1';
+        $fileIdentifier = 'Identifier_of_File_1';
         foreach (array(
-                $this->baseFile . 'Identifier_of_File_1' => 'cleanUrl_generic_file',
-                $this->baseItem . 'Identifier_of_Item_1' . '/' . 'Identifier_of_File_1' => 'cleanUrl_generic_item_file',
-                $this->baseCollection . 'Identifier_of_Collection_1' . '/' . 'Identifier_of_File_1' => 'cleanUrl_collections_file',
-                $this->baseCollection . 'Identifier_of_Collection_1' . '/' . 'Identifier_of_Item_1' . '/' . 'Identifier_of_File_1' => 'cleanUrl_collections_item_file',
+                $this->baseFile . $fileIdentifier => 'cleanUrl_generic_file',
+                $this->baseItem . $itemIdentifier . '/' . $fileIdentifier => 'cleanUrl_generic_item_file',
+                $this->baseCollection . $collectionIdentifier . '/' . $fileIdentifier => 'cleanUrl_collections_file',
+                $this->baseCollection . $collectionIdentifier . '/' . $itemIdentifier . '/' . $fileIdentifier => 'cleanUrl_collections_item_file',
             ) as $url => $route) {
             $this->dispatch($url);
             $this->assertRoute($route);
             $this->assertModule('default');
             $this->assertController('files');
             $this->assertAction('show');
+            $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
+        }
+    }
+
+    /**
+     * Tests to check routing system for files with non-ascii characters.
+     */
+    public function testRoutingFileCharacters()
+    {
+        // Allow all routes to check all of them.
+        set_option('clean_url_file_alloweds', serialize(array(
+            'generic', 'generic_item', 'collection', 'collection_item',
+        )));
+        $this->_reloadRoutes();
+
+        $record = $this->getRecordByTitle('Title of File with Æ character');
+        $collectionIdentifier = 'Identifier of Collection with a space and é character';
+        $itemIdentifier = 'Identifier of Item with µ character';
+        $fileIdentifier = 'Identifier of File with Æ character';
+        foreach (array(
+                $this->baseFile . $fileIdentifier => 'cleanUrl_generic_file',
+                $this->baseItem . $itemIdentifier . '/' . $fileIdentifier => 'cleanUrl_generic_item_file',
+                $this->baseCollection . $collectionIdentifier . '/' . $fileIdentifier => 'cleanUrl_collections_file',
+                $this->baseCollection . $collectionIdentifier . '/' . $itemIdentifier . '/' . $fileIdentifier => 'cleanUrl_collections_item_file',
+            ) as $url => $route) {
+            $this->dispatch($url);
+            $this->assertRoute($route);
+            $this->assertModule('default');
+            $this->assertController('files');
+            $this->assertAction('show');
+            $this->assertEquals($record->id, (integer) $this->request->getParam('id'));
         }
     }
 

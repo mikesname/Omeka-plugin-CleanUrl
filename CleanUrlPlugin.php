@@ -133,7 +133,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $post = $args['post'];
 
         // Sanitize first.
-        $post['clean_url_identifier_prefix'] = $this->_sanitizePrefix($post['clean_url_identifier_prefix']);
+        $post['clean_url_identifier_prefix'] = trim($post['clean_url_identifier_prefix']);
         foreach (array(
                 'clean_url_main_path',
                 'clean_url_collection_generic',
@@ -141,7 +141,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 'clean_url_file_generic',
             ) as $posted) {
             $value = trim($post[$posted], ' /');
-            $post[$posted] = empty($value) ? '' : $this->_sanitizeString($value) . '/';
+            $post[$posted] = empty($value) ? '' : trim($value) . '/';
         }
 
         // The default url should be allowed for items and files.
@@ -211,6 +211,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $view = get_view();
         $view->addHelperPath($pathHelpers, 'CleanUrl_View_Helper_');
         $collectionsIdentifiers = $view->getRecordTypeIdentifiers('Collection', true);
+        $collectionsIdentifiers = array_map('rawurlencode', $collectionsIdentifiers);
 
         if (!empty($collectionsIdentifiers)) {
             // Use one regex for all collections. Default is case insensitve.
@@ -373,50 +374,5 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 )));
             }
         }
-    }
-
-    /**
-     * Returns a sanitized and unaccentued string for folder or file path.
-     *
-     * @param string $string The string to sanitize.
-     *
-     * @return string The sanitized string to use as a folder or a file name.
-     */
-    private function _sanitizeString($string)
-    {
-        return $this->_sanitizeAnyString($string, '');
-    }
-
-    /**
-      * Returns a sanitized and unaccentued string for prefix.
-     *
-     * Difference with default sanitization is that space is allowed.
-     *
-     * @param string $string The string to sanitize.
-     *
-     * @return string The sanitized string to use as a prefix.
-     */
-    private function _sanitizePrefix($string)
-    {
-        return $this->_sanitizeAnyString($string, ' ');
-    }
-
-    /**
-     * Returns a sanitized and unaccentued string for folder or file path.
-     *
-     * @param string $string The string to sanitize.
-     * @param string $space Add space as an allowed characters.
-     *
-     * @return string The sanitized string to use as a folder or a file name.
-     */
-    private function _sanitizeAnyString($string, $space = '')
-    {
-        $string = trim(strip_tags($string));
-        $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
-        $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml)\;#', '\1', $string);
-        $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
-        $string = preg_replace('#\&[^;]+\;#', '_', $string);
-        $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:' . $space . ']/', '_', $string);
-        return preg_replace('/_+/', '_', $string);
     }
 }

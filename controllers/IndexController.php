@@ -30,7 +30,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
     public function collectionShowAction()
     {
-        $this->_collection_identifier = $this->getParam('record_identifier');
+        $this->_collection_identifier = rawurldecode($this->getParam('record_identifier'));
         $result = $this->_setCollectionId();
         if (empty($result)) {
             throw new Omeka_Controller_Exception_404;
@@ -67,7 +67,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      */
     public function routeCollectionItemAction()
     {
-        $this->_collection_identifier = $this->getParam('collection_identifier');
+        $this->_collection_identifier = rawurldecode($this->getParam('collection_identifier'));
         // If 0, this is possible (item without collection, or generic route).
         $result = $this->_setCollectionId();
         if (is_null($result)) {
@@ -151,13 +151,13 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      */
     public function routeCollectionItemFileAction()
     {
-        $this->_collection_identifier = $this->getParam('collection_identifier');
+        $this->_collection_identifier = rawurldecode($this->getParam('collection_identifier'));
         // If 0, this is possible (item without collection, or generic route).
         $result = $this->_setCollectionId();
         if (is_null($result)) {
             throw new Omeka_Controller_Exception_404;
         }
-        $this->_item_identifier = $this->getParam('item_identifier');
+        $this->_item_identifier = rawurldecode($this->getParam('item_identifier'));
         // If 0, this is possible (generic route).
         $result = $this->_setItemId();
         if (is_null($result)) {
@@ -208,7 +208,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         $elementId = (integer) get_option('clean_url_identifier_element');
 
-        $this->_record_identifier = $this->getParam('record_identifier');
+        $this->_record_identifier = rawurldecode($this->getParam('record_identifier'));
 
         // Select table.
         switch ($this->_record_type) {
@@ -229,18 +229,19 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // Check with a space between prefix and identifier too.
         $bind[] = $prefix . ' ' . $this->_record_identifier;
 
-        // Check only lowercase if needed.
-        if (!get_option('clean_url_case_insensitive')) {
-            $sqlWhereText =
-                "AND (element_texts.text = ?
-                    OR element_texts.text = ?)";
-        }
-        else {
+        // If the table is case sensitive, lower-case the search.
+        if (get_option('clean_url_case_insensitive')) {
             $bind[0] = strtolower($bind[0]);
             $bind[1] = strtolower($bind[1]);
             $sqlWhereText =
                 "AND (LOWER(element_texts.text) = ?
                     OR LOWER(element_texts.text) = ?)";
+        }
+        // Default.
+        else {
+            $sqlWhereText =
+                "AND (element_texts.text = ?
+                    OR element_texts.text = ?)";
         }
 
         // Checks if url contains generic or true collection.
@@ -277,7 +278,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         ";
         $id = $db->fetchOne($sql, $bind);
 
-        // Additional check for item identifier : the file should belong to item.
+        // Additional check for item identifier: the file should belong to item.
         // TODO Include this in the query.
         if ($id && !empty($this->_item_identifier) && $this->_record_type == 'File') {
             // Check if the found file belongs to the item.
@@ -327,8 +328,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         // Check if the found file belongs to the item.
         if (!empty($this->_item_identifier)) {
             // Get the item identifier.
-            $item_identifier = $this->view->getRecordIdentifier($item);
-
+            $item_identifier = $this->view->getRecordIdentifier($item, false);
             // Check identifier and id of item.
             if (strtolower($this->_item_identifier) != strtolower($item_identifier)
                     && $this->_item_identifier != $item->id

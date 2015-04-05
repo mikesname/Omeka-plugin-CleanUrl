@@ -7,12 +7,15 @@ class CleanUrl_IdentifiersTest extends CleanUrl_Test_AppTestCase
     public function testGetRecordIdentifier()
     {
         $prefix = get_option('clean_url_identifier_prefix');
-        foreach ($this->recordsMetadata as $recordMetadata) {
-            $title = $recordMetadata['Title'];
-            $identifier = reset($recordMetadata['Identifier']);
-            $record = $this->getRecordByTitle($title);
-            $recordIdentifier = $this->_view->getRecordIdentifier($record);
-            $this->assertEquals($identifier, $prefix . ' ' . $recordIdentifier, sprintf('A %s has a wrong identifier.', $recordMetadata['type']));
+        foreach ($this->_recordsByType as $type => $recordsMetadata) {
+            foreach ($recordsMetadata as $recordMetadata) {
+                $title = $recordMetadata['Title'];
+                $identifier = reset($recordMetadata['Identifier']);
+                $record = $this->getRecordByTitle($title);
+                $recordIdentifier = $this->_view->getRecordIdentifier($record, false);
+                $value = $prefix . ' ' . $recordIdentifier;
+                $this->assertEquals($identifier, $value, sprintf('A %s has a wrong identifier.', $type));
+            }
         }
     }
 
@@ -25,6 +28,7 @@ class CleanUrl_IdentifiersTest extends CleanUrl_Test_AppTestCase
         $identifiersAndTitles = array(
             'Identifier_of_Collection_1' => 'Title of Collection #1',
             'Identifier_of_Collection_2' => 'Title of Collection #2',
+            'Identifier of Collection with a space and é character' => 'Title of Collection with utf-8 characters, as é',
             // 'Identifier_of_Item_3' => 'Title of Collection #2',
             // 'Identifier_of_File_2' => 'Title of Collection #2',
             'Identifier_of_Item_1' => 'Title of Item #1',
@@ -37,12 +41,14 @@ class CleanUrl_IdentifiersTest extends CleanUrl_Test_AppTestCase
             // 'Identifier_of_File_2' => 'Title of Item #2',
             // 'Second_Identifier_of_File_2' => 'Title of Item #2',
             // 'Identifier_of_Item_3' => 'Title of Item #3',
+            'Identifier of Item with µ character' => 'Title of Item with µ character',
             'Identifier_of_File_1' => 'Title of File #1',
             // 'Identifier_of_File_2' => 'Title of File #2',
             // 'Second_Identifier_of_File_2' => 'Title of File #2',
             // 'Identifier_of_Collection_2' => 'Title of File #2',
             // 'Identifier_of_Item_2' => 'Title of File #2',
             // 'Identifier_of_Item_3' => 'Title of File #2',
+            'Identifier of File with Æ character' => 'Title of File with Æ character',
         );
 
         $prefix = get_option('clean_url_identifier_prefix');

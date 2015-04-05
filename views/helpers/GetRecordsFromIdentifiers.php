@@ -11,7 +11,7 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
     private static $_prefix;
 
     /**
-     * Get records from identifiers.
+     * Get records from raw encoded identifiers.
      *
      * Currently, files records are returned only in admin view.
      *
@@ -25,7 +25,7 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
      * @param boolean $checkPublic Return results depending on users (default)
      * or not. If return format is 'record', check is always done. For files,
      * they are returned only for admin.
-     * @return Omeka_Record_AbstractRecord|array|null|integer
+     * @return Omeka_Record_AbstractRecord|array|integer|null
      * Found record, or ordered records array, or null. Duplicates are not
      * returned.
      */
@@ -33,33 +33,25 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
         $identifiers,
         $withPrefix = true,
         $return = 'record',
-        $checkPublic = true)
-    {
+        $checkPublic = true
+    ) {
         $one = false;
         if (is_string($identifiers)) {
             $one = true;
             $identifiers = array($identifiers);
         }
 
-        // Clean and lowercase identifier to facilitate search.
-        $identifiers = array_map('self::_cleanIdentifier', $identifiers);
+        // Url decode identifiers.
+        $identifiers = array_map('rawurldecode', $identifiers);
         $identifiers = array_filter($identifiers);
         if (empty($identifiers)) {
             return null;
         }
 
         $db = get_db();
-        $elementId = (integer) get_option('clean_url_identifier_element');
+        $bind = array();
 
-        if ($withPrefix) {
-            $bind = $identifiers;
-        }
-        else {
-            self::$_prefix = get_option('clean_url_identifier_prefix');
-            // Check with a space between prefix and identifier too.
-            $bind = array_map('self::_addPrefixToIdentifier', $identifiers);
-            $bind = array_merge($bind, array_map('self::_addPrefixSpaceToIdentifier', $identifiers));
-        }
+        $elementId = (integer) get_option('clean_url_identifier_element');
 
         // TODO Use filters for user or use regular methods (get_record_by_id() checks it).
         if (($checkPublic || $return == 'record') && !(is_admin_theme() || current_user())) {
@@ -87,22 +79,40 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
             $sqlWhereIsPublic = '';
         }
 
+        if (!$withPrefix) {
+            self::$_prefix = get_option('clean_url_identifier_prefix');
+            // Check with a space between prefix and identifier too.
+            $ids = array_map('self::_addPrefixToIdentifier', $identifiers);
+            $identifiers = array_merge($ids, array_map('self::_addPrefixSpaceToIdentifier', $identifiers));
+        }
+
+        // TODO Secure bind for identifiers.
+        // If the table is case sensitive, lower-case the search.
+        if (get_option('clean_url_case_insensitive')) {
+            $identifiers = array_map('strtolower', $identifiers);
+            $commaIdentifiers = "'" . implode("', '", $identifiers) . "'";
+            $sqlWhereText = "AND LOWER(element_texts.text) IN ($commaIdentifiers)";
+        }
+        // Default.
+        else {
+            $commaIdentifiers = "'" . implode("', '", $identifiers) . "'";
+            $sqlWhereText = "AND element_texts.text IN ($commaIdentifiers)";
+        }
+
         $sqlLimit = $one ? 'LIMIT 1' : '';
 
-        $commaIdentifiers = "'" . implode("', '", $bind) . "'";
         $sql = "
             SELECT element_texts.record_type as 'type', element_texts.record_id as 'id'
             FROM {$db->ElementText} element_texts
                 $sqlFromIsPublic
             WHERE element_texts.element_id = '$elementId'
-                AND element_texts.text IN ($commaIdentifiers)
+                $sqlWhereText
                 $sqlWhereIsPublic
             ORDER BY
                 FIELD(element_texts.text, $commaIdentifiers)
             $sqlLimit
         ";
-        // TODO Secure bind.
-        $results = $db->fetchAll($sql);
+        $results = $db->fetchAll($sql, $bind);
 
         if ($results) {
             switch ($return) {
@@ -112,11 +122,9 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
                     }
                     break;
 
-                case 'public type and id':
                 case 'type and id':
                     break;
 
-                case 'public id':
                 case 'id':
                     foreach ($results as $key => $result) {
                         $results[$key] = $result['id'];
@@ -130,15 +138,6 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
                 ? array_shift($results)
                 : $results;
         }
-        return null;
-    }
-
-    /**
-     * Return a cleaned string to simplify search of an identifier.
-     */
-    private static function _cleanIdentifier($string)
-    {
-        return trim(strtolower($string), ' /\\?<>:*%|"\'`&; ');
     }
 
     /**

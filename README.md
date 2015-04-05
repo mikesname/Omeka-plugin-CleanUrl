@@ -30,6 +30,10 @@ Simply set an identifier for each record in a field (`Dublin Core:Identifier` by
 default). Recommended fields to use are `Dublin Core:Identifier` or an added
 specific field. This field should be available for collections, items and files.
 
+- Identifiers can be any strings with any characters, as long as they don't
+contain reserved characters like "/" and "%".
+- To use numbers as identifier is possible but not recommended. if so, it's
+recommended that all records have got an identifier.
 - A prefix can be added if you have other data in the same field.
 - A record can have multiple identifiers. The first one will be used to set the
 default url. Other ones can be used to set alias.
@@ -40,9 +44,6 @@ slugs...) should not be used as identifiers, except if there is a part before
 them (a main path, a collection identifier or a generic word).
 - If not set, the identifier will be the default id of the record, except for
 collections, where the original path will be used.
-- To use numbers as identifier is possible but not recommended, except if all
-records have got an identifier.
-- Identifiers should be sanitized, else urls won't work.
 
 ### Structure of urls ###
 
@@ -154,7 +155,7 @@ The upgrade for Omeka 2.0 has been built for [Mines ParisTech].
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2014
+* Copyright Daniel Berthereau, 2012-2015
 
 Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 

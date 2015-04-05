@@ -12,12 +12,10 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
      * Return the identifier of a record, if any. It can be sanitized.
      *
      * @param Omeka_Record_AbstractRecord|string $record
-     * @param boolean $sanitize Sanitize the identifier or not.
-     *
-     * @return string
-     *   Identifier of the record, if any, else empty string.
+     * @param boolean $rawEncoded Sanitize the identifier for http or not.
+     * @return string Identifier of the record, if any, else empty string.
      */
-    public function getRecordIdentifier($record, $sanitize = true)
+    public function getRecordIdentifier($record, $rawEncoded = true)
     {
         // Get the current record from the view if passed as a string.
         if (is_string($record)) {
@@ -41,8 +39,8 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
         $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
             // Keep only the identifier without the configured prefix.
-            $prefixLenght = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLenght . '))';
+            $prefixLength = strlen($prefix) + 1;
+            $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLength . '))';
             $sqlWhereText = 'AND element_texts.text LIKE ?';
             $bind[] = $prefix . '%';
         }
@@ -63,34 +61,8 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
         ";
         $identifier = $db->fetchOne($sql, $bind);
 
-        if (empty($identifier)) {
-            return '';
-        }
-
-        // Sanitize the identifier in order to use it securely in a clean url.
-        if ($sanitize) {
-            $identifier = $this->_sanitizeString(trim($identifier, ' /\\'));
-        }
-
-        return $identifier;
-    }
-
-    /**
-     * Returns a sanitized and unaccentued string for folder or file path.
-     *
-     * @param string $string The string to sanitize.
-     *
-     * @return string The sanitized string to use as a folder or a file name.
-     */
-    private function _sanitizeString($string)
-    {
-        $space = '';
-        $string = trim(strip_tags($string));
-        $string = htmlentities($string, ENT_NOQUOTES, 'utf-8');
-        $string = preg_replace('#\&([A-Za-z])(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml)\;#', '\1', $string);
-        $string = preg_replace('#\&([A-Za-z]{2})(?:lig)\;#', '\1', $string);
-        $string = preg_replace('#\&[^;]+\;#', '_', $string);
-        $string = preg_replace('/[^[:alnum:]\(\)\[\]_\-\.#~@+:' . $space . ']/', '_', $string);
-        return preg_replace('/_+/', '_', $string);
+        return $rawEncoded
+            ? rawurlencode($identifier)
+            : $identifier;
     }
 }

@@ -32,7 +32,8 @@
             <p class="explanation">
                 <?php echo __('Field where to save the identifier of the item or file.');
                 echo ' ' . __('It should be an identifier used for all record types (Collection, Item and File).');
-                echo ' ' . __('Default is to use "Dublin Core:Identifier".'); ?>
+                echo ' ' . __('Default is to use "Dublin Core:Identifier".');
+                echo ' ' . __('Note: whatever the field, the value should never contain reserved characters such "/" or "%".'); ?>
             </p>
         </div>
     </div>

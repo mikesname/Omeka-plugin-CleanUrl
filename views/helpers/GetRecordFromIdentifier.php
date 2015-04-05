@@ -14,6 +14,8 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
     /**
      * Get record from identifier
      *
+     * @todo Add check public for non-record responses (see getRecordsFromIdentifiers).
+     *
      * @param string $identifier The identifier of the record to find.
      * @param boolean $withPrefix Optional. If identifier begins with prefix.
      * @param string $recordType Optional. Search a specific record type if any.
@@ -26,13 +28,16 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
         $recordType = null,
         $onlyRecordId = false
     ) {
+        // Url decode identifiers.
+        $identifier = rawurldecode($identifier);
+        if (empty($identifier)) {
+            return null;
+        }
+
         $db = get_db();
-        $elementId = (integer) get_option('clean_url_identifier_element');
-
-        // Clean and lowercase identifier to facilitate search.
-        $identifier = trim(strtolower($identifier), ' /\\?<>:*%|"\'`&; ');
-
         $bind = array();
+
+        $elementId = (integer) get_option('clean_url_identifier_element');
 
         if ($recordType) {
             $sqlRecordType = "AND element_texts.record_type = ?";
@@ -45,12 +50,29 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
         }
 
         if ($withPrefix) {
-            $sqlText = 'AND element_texts.text = ?';
+            // If the table is case sensitive, lower-case the search.
+            if (get_option('clean_url_case_insensitive')) {
+                $identifier = strtolower($identifier);
+                $sqlWhereText = "AND LOWER(element_texts.text) = ?";
+            }
+            // Default.
+            else {
+                $sqlWhereText = 'AND element_texts.text = ?';
+            }
             $bind[] = $identifier;
         }
         else {
-            $sqlText = 'AND (element_texts.text = ? OR element_texts.text = ?)';
             $prefix = get_option('clean_url_identifier_prefix');
+            // If the table is case sensitive, lower-case the search.
+            if (get_option('clean_url_case_insensitive')) {
+                $prefix = strtolower($prefix);
+                $identifier = strtolower($identifier);
+                $sqlWhereText = 'AND (LOWER(element_texts.text) = ? OR LOWER(element_texts.text) = ?)';
+            }
+            // Default.
+            else {
+                $sqlWhereText = 'AND (element_texts.text = ? OR element_texts.text = ?)';
+            }
             $bind[] = $prefix . $identifier;
             // Check with a space between prefix and identifier too.
             $bind[] = $prefix . ' ' . $identifier;
@@ -61,7 +83,7 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
             FROM {$db->ElementText} element_texts
             WHERE element_texts.element_id = '$elementId'
                 $sqlRecordType
-                $sqlText
+                $sqlWhereText
             $sqlOrder
             LIMIT 1
         ";
