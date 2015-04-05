@@ -25,7 +25,7 @@ class CleanUrl_View_Helper_RecordUrl extends Omeka_View_Helper_RecordUrl
      */
     public function recordUrl($record, $action = null, $getAbsoluteUrl = false, $queryParams = array())
     {
-        if (is_admin_theme()) {
+        if (is_admin_theme() && !get_option('clean_url_use_admin')) {
             return parent::recordUrl($record, $action, $getAbsoluteUrl, $queryParams);
         }
 

@@ -37,6 +37,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_file_default' => 'generic',
         'clean_url_file_alloweds' => 'a:2:{i:0;s:7:"generic";i:1;s:15:"collection_item";}',
         'clean_url_file_generic' => 'file/',
+        'clean_url_use_admin' => false,
         'clean_url_display_admin_browse_identifier' => true,
     );
 
@@ -183,7 +184,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookDefineRoutes($args)
     {
-        if (is_admin_theme()) {
+        if (is_admin_theme() && !get_option('clean_url_use_admin')) {
             return;
         }
 

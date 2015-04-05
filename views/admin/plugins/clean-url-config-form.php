@@ -9,6 +9,8 @@
 <?php
     echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/item_identifier.') . '<br />';
     echo __('See %s for more information.', '<a href="https://github.com/Daniel-KM/CleanUrl">ReadMe</a>');
+    echo '<br />';
+    echo __('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".', '<strong>', '</strong>');
 ?>
 </p>
 <fieldset id="fieldset-cleanurl-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
@@ -32,8 +34,7 @@
             <p class="explanation">
                 <?php echo __('Field where to save the identifier of the item or file.');
                 echo ' ' . __('It should be an identifier used for all record types (Collection, Item and File).');
-                echo ' ' . __('Default is to use "Dublin Core:Identifier".');
-                echo ' ' . __('Note: whatever the field, the value should never contain reserved characters such "/" or "%".'); ?>
+                echo ' ' . __('Default is to use "Dublin Core:Identifier".'); ?>
             </p>
         </div>
     </div>
@@ -198,6 +199,17 @@
     </div>
 </fieldset>
 <fieldset id="fieldset-cleanurl-admin"><legend><?php echo __('Admin Interface'); ?></legend>
+    <div class="field">
+        <div class="two columns alpha">
+            <?php echo $this->formLabel('clean_url_use_admin', __('Use clean url')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <?php echo $this->formCheckbox('clean_url_use_admin', true, array('checked' => (boolean) get_option('clean_url_use_admin'))); ?>
+            <p class="explanation">
+                <?php echo __('If checked, the clean url will be used in the admin interface when possible.'); ?>
+            </p>
+        </div>
+    </div>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_display_admin_browse_identifier', __('Display identifier in admin items/browse')); ?>
