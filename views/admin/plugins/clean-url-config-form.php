@@ -11,7 +11,7 @@
     echo __('See %s for more information.', '<a href="https://github.com/Daniel-KM/CleanUrl">ReadMe</a>');
 ?>
 </p>
-<fieldset id="fieldset-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
+<fieldset id="fieldset-cleanurl-identifiers"><legend><?php echo __('Identifiers'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_identifier_element', __('Field where id is saved')); ?>
@@ -43,7 +43,7 @@
         <div class='inputs five columns omega'>
             <?php echo $this->formText('clean_url_identifier_prefix', get_option('clean_url_identifier_prefix'), NULL); ?>
             <p class="explanation">
-                <?php echo __('Urls are built with the sanitized Dublin Core identifier with the selected prefix, for example "item:", "record:" or "doc =". Let empty to use simply the first identifier.') . '<br />'; ?>
+                <?php echo __('Urls are built with the sanitized Dublin Core identifier with the selected prefix, for example "item:", "record:" or "doc =". Let empty to use simply the first identifier.'); ?>
                 <?php echo __('If this identifier does not exists, the Omeka item id will be used.'); ?>
             </p>
         </div>
@@ -55,13 +55,13 @@
         <div class='inputs five columns omega'>
             <?php echo $this->formCheckbox('clean_url_case_insensitive', TRUE, array('checked' => (boolean) get_option('clean_url_case_insensitive'))); ?>
             <p class="explanation">
-                <?php echo __('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.') . '<br />'; ?>
+                <?php echo __('If checked, all items will be available via an insensitive url too. This option is generally useless, because searches in database are generally case insensitive by default.'); ?>
                 <?php echo __('Furthermore, it can slow server responses, unless you add an index for lower texts.'); ?>
             </p>
         </div>
     </div>
 </fieldset>
-<fieldset id="fieldset-main-path"><legend><?php echo __('Main base path'); ?></legend>
+<fieldset id="fieldset-cleanurl-main-path"><legend><?php echo __('Main base path'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_main_path', __('Main path to add')); ?>
@@ -75,7 +75,7 @@
         </div>
     </div>
 </fieldset>
-<fieldset id="fieldset-collections"><legend><?php echo __('Collections'); ?></legend>
+<fieldset id="fieldset-cleanurl-collections"><legend><?php echo __('Collections'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_collection_generic', __('Generic name to add before collection identifier')); ?>
@@ -89,7 +89,7 @@
         </div>
     </div>
 </fieldset>
-<fieldset id="fieldset-items"><legend><?php echo __('Items'); ?></legend>
+<fieldset id="fieldset-cleanurl-items"><legend><?php echo __('Items'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_item_default', __('Default url of items')); ?>
@@ -141,7 +141,7 @@
         </div>
     </div>
 </fieldset>
-<fieldset id="fieldset-files"><legend><?php echo __('Files'); ?></legend>
+<fieldset id="fieldset-cleanurl-files"><legend><?php echo __('Files'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_file_default', __('Default url of files')); ?>
@@ -196,7 +196,7 @@
         </div>
     </div>
 </fieldset>
-<fieldset id="fieldset-display"><legend><?php echo __('Display'); ?></legend>
+<fieldset id="fieldset-cleanurl-admin"><legend><?php echo __('Admin Interface'); ?></legend>
     <div class="field">
         <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_display_admin_browse_identifier', __('Display identifier in admin items/browse')); ?>
