@@ -201,85 +201,68 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         // (most specific) to the first one (most generic).
 
         // Get all collections identifiers with one query.
-        // This helper path is needed only for tests, because the route is
-        // loaded before the helpers. It can't be set in the hook Initialize,
-        // because there is no view for long jobs.
-        // TODO Add this path directly in the tests.
-        $pathHelpers = dirname(__FILE__)
-            . DIRECTORY_SEPARATOR . 'views'
-            . DIRECTORY_SEPARATOR . 'helpers';
-        $view = get_view();
-        $view->addHelperPath($pathHelpers, 'CleanUrl_View_Helper_');
-        $collectionsIdentifiers = $view->getRecordTypeIdentifiers('Collection', true);
-        $collectionsIdentifiers = array_map('rawurlencode', $collectionsIdentifiers);
+        $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', false);
 
         if (!empty($collectionsIdentifiers)) {
             // Use one regex for all collections. Default is case insensitve.
             $collectionsRegex = array_map('preg_quote', $collectionsIdentifiers);
-            $collectionsRegex = $mainPath . $collectionGeneric . '(' . implode('|', $collectionsRegex) . ')';
-            $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route_Regex(
-                $collectionsRegex,
+            // To avoid a bug with identifiers that contain a "/", that is not
+            // escaped with preg_quote().
+            $collectionsRegex = '(' . str_replace('/', '\/', implode('|', $collectionsRegex)) . ')';
+
+            // Add a collection route.
+            $route = $mainPath . $collectionGeneric;
+            $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route(
+                $route . ':record_identifier',
                 array(
                     'module' => 'clean-url',
                     'controller' => 'index',
                     'action' => 'collection-show',
                 ),
                 array(
-                    1 => 'record_identifier',
-                ),
-                'collections/show/%d'
-            ));
+                    'record_identifier' => $collectionsRegex,
+            )));
 
             // Add a collection route for files.
             if (in_array('collection', $allowedForFiles)) {
-                $router->addRoute('cleanUrl_collections_file', new Zend_Controller_Router_Route_Regex(
-                    $collectionsRegex . '/([^/]+)',
+                $router->addRoute('cleanUrl_collections_file', new Zend_Controller_Router_Route(
+                    $route . ':collection_identifier/:record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'route-collection-file',
                     ),
                     array(
-                        1 => 'collection_identifier',
-                        2 => 'record_identifier',
-                    ),
-                    'files/show/%d'
-                ));
+                        'collection_identifier' => $collectionsRegex,
+                )));
             }
 
             // Add a collection / item route for files.
             if (in_array('collection_item', $allowedForFiles)) {
-                $router->addRoute('cleanUrl_collections_item_file', new Zend_Controller_Router_Route_Regex(
-                    $collectionsRegex . '/([^/]+)/([^/]+)',
+                $router->addRoute('cleanUrl_collections_item_file', new Zend_Controller_Router_Route(
+                    $route . ':collection_identifier/:item_identifier/:record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'route-collection-item-file',
                     ),
                     array(
-                        1 => 'collection_identifier',
-                        2 => 'item_identifier',
-                        3 => 'record_identifier',
-                    ),
-                    'files/show/%d'
-                ));
+                        'collection_identifier' => $collectionsRegex,
+                )));
             }
 
             // Add a collection route for items.
             if (in_array('collection', $allowedForItems)) {
-                $router->addRoute('cleanUrl_collections_item', new Zend_Controller_Router_Route_Regex(
-                    $collectionsRegex . '/([^/]+)',
+                $router->addRoute('cleanUrl_collections_item', new Zend_Controller_Router_Route(
+                    $route . ':collection_identifier/:record_identifier',
                     array(
                         'module' => 'clean-url',
                         'controller' => 'index',
                         'action' => 'route-collection-item',
                     ),
                     array(
-                        1 => 'collection_identifier',
-                        2 => 'record_identifier',
-                    ),
-                    'items/show/%d'
-                ));
+                        'collection_identifier' => $collectionsRegex,
+                )));
             }
         }
 
@@ -294,19 +277,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'action' => 'route-file',
                     'collection_id' => NULL,
             )));
-
-            // Add a lowercase route to prevent some practical issues.
-            $lowerRoute = strtolower($route);
-            if ($lowerRoute != $route) {
-                $router->addRoute('cleanUrl_generic_file_lower', new Zend_Controller_Router_Route(
-                    $lowerRoute . ':record_identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-file',
-                        'collection_id' => NULL,
-                )));
-            }
         }
 
         // Add a generic / item route for files.
@@ -320,19 +290,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'action' => 'route-item-file',
                     'collection_id' => NULL,
             )));
-
-            // Add a lowercase route to prevent some practical issues.
-            $lowerRoute = strtolower($route);
-            if ($lowerRoute != $route) {
-                $router->addRoute('cleanUrl_generic_item_file_lower', new Zend_Controller_Router_Route(
-                    $lowerRoute . ':item_identifier/:record_identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-item-file',
-                        'collection_id' => NULL,
-                )));
-            }
         }
 
         // Add a generic route for items.
@@ -353,26 +310,6 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'action' => 'route-item',
                     'collection_id' => NULL,
             )));
-
-            // Add a lowercase route to prevent some practical issues.
-            $lowerRoute = strtolower($route);
-            if ($lowerRoute != $route) {
-                $router->addRoute('cleanUrl_generic_items_browse_lower', new Zend_Controller_Router_Route(
-                    $lowerRoute,
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'items-browse',
-                )));
-                $router->addRoute('cleanUrl_generic_item_lower', new Zend_Controller_Router_Route(
-                    $lowerRoute . '/:record_identifier',
-                    array(
-                        'module' => 'clean-url',
-                        'controller' => 'index',
-                        'action' => 'route-item',
-                        'collection_id' => NULL,
-                )));
-            }
         }
     }
 }

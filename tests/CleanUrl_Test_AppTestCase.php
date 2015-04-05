@@ -125,10 +125,11 @@ class CleanUrl_Test_AppTestCase extends Omeka_Test_AppTestCase
     {
         parent::setUp();
 
+        $this->_view = get_view();
+        $this->_view->addHelperPath(CLEAN_URL_DIR . '/views/helpers', self::PLUGIN_NAME . '_View_Helper_');
+
         $pluginHelper = new Omeka_Test_Helper_Plugin;
         $pluginHelper->setUp(self::PLUGIN_NAME);
-
-        $this->_view = get_view();
 
         // Add constraints if derivatives have been added in the config file.
         $fileDerivatives = Zend_Registry::get('bootstrap')->getResource('Config')->fileDerivatives;
