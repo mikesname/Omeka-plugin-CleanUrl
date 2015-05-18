@@ -162,13 +162,13 @@ Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 
 [Clean Url]: https://github.com/Daniel-KM/CleanUrl
 [Omeka]: http://www.omeka.org
-[plugin issues]: https://github.com/Daniel-KM/CleanUrl/Issues
+[plugin issues]: https://github.com/Daniel-KM/CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
 [CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
 [OSI]: http://opensource.org
-[Daniel-KM]: http://github.com/Daniel-KM "Daniel Berthereau"
+[Daniel-KM]: https://github.com/Daniel-KM "Daniel Berthereau"
 [École des Ponts ParisTech]: http://bibliotheque.enpc.fr
 [Mines ParisTech]: https://patrimoine.mines-paristech.fr
 [GitHub ItemId]: https://github.com/jimsafley/ItemId
