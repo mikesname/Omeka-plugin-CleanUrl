@@ -7,8 +7,8 @@
 class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 {
     // The type and id of record to get.
-    private $_record_type = '';
     private $_record_identifier = '';
+    private $_record_type = '';
     private $_record_id = 0;
     // Identifiers from the url.
     private $_collection_identifier = '';
@@ -18,6 +18,11 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
     private $_collection_id = 0;
     private $_item_id = 0;
     private $_file_id = 0;
+
+    // Resolved route plugin.
+    private $_routePlugin = '';
+    // The allowed plugins.
+    private $_routePlugins = array();
 
     /**
      * Initialize the controller.
@@ -94,11 +99,17 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $id = $this->_record_identifier;
         }
 
+        $this->_record_id = $id;
+
+        if ($this->_checkRoutePlugin()) {
+            return $this->_forwardToPlugin();
+        }
+
         return $this->forward('show', 'items', 'default', array(
             'module' => null,
             'controller' => 'items',
             'action' => 'show',
-            'id' => $id,
+            'id' => $this->_record_id,
             'record_type' => 'Item',
         ));
     }
@@ -121,11 +132,17 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $id = $this->_record_identifier;
         }
 
+        $this->_record_id = $id;
+
+        if ($this->_checkRoutePlugin()) {
+            return $this->_forwardToPlugin();
+        }
+
         return $this->forward('show', 'files', 'default', array(
             'module' => null,
             'controller' => 'files',
             'action' => 'show',
-            'id' => $id,
+            'id' => $this->_record_id,
             'record_type' => 'File',
         ));
     }
@@ -186,11 +203,17 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $id = $this->_record_identifier;
         }
 
+        $this->_record_id = $id;
+
+        if ($this->_checkRoutePlugin()) {
+            return $this->_forwardToPlugin();
+        }
+
         return $this->forward('show', 'files', 'default', array(
             'module' => null,
             'controller' => 'files',
             'action' => 'show',
-            'id' => $id,
+            'id' => $this->_record_id,
             'record_type' => 'File',
         ));
     }
@@ -362,5 +385,73 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
             $this->_file_id = $this->view->getRecordFromIdentifier($this->_file_identifier, false, 'File', 'id');
         }
         return $this->_file_id;
+    }
+
+    /**
+     * Check if this is a route to a plugin.
+     *
+     * @return string|null The plugin route to use, else null.
+     */
+    protected function _checkRoutePlugin()
+    {
+        $routePlugin = $this->getParam('rp');
+        if (empty($routePlugin)) {
+            return;
+        }
+
+        $alloweds = unserialize(get_option('clean_url_route_plugins')) ?: array();
+        if (!in_array($routePlugin, $alloweds)) {
+            return;
+        }
+
+        $this->_routePlugins = apply_filters('clean_url_route_plugins', array());
+        if (!isset($this->_routePlugins[$routePlugin])) {
+            return;
+        }
+
+        $plugin = $this->_routePlugins[$routePlugin];
+
+        if (!plugin_is_active($plugin['plugin'])) {
+            return;
+        }
+
+        if (!empty($plugin['record_types'])
+                && !in_array($this->_record_type, $plugin['record_types'])
+            ) {
+            return;
+        }
+
+        $this->_routePlugin = $routePlugin;
+
+        return $routePlugin;
+    }
+
+    /**
+     * Forward to a plugin.
+     *
+     * @return string|null The plugin route to use, else null.
+     */
+    protected function _forwardToPlugin()
+    {
+        $route = &$this->_routePlugins[$this->_routePlugin];
+
+        $params = $this->getAllParams();
+        unset($params['record_identifier']);
+        unset($params['rp']);
+
+        if (isset($route['map']['id'])) {
+            $params[$route['map']['id']] = $this->_record_id;
+        }
+        if (isset($route['map']['type'])) {
+            $params[$route['map']['type']] = $this->_record_type;
+        }
+
+        $params = array_merge($params, $route['params']);
+
+        return $this->forward(
+            $route['params']['action'],
+            $route['params']['controller'],
+            $route['params']['module'],
+            $params);
     }
 }

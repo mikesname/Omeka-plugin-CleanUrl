@@ -222,3 +222,40 @@
         </div>
     </div>
 </fieldset>
+<fieldset id="fieldset-cleanurl-routes"><legend><?php echo __('Routes of other plugins'); ?></legend>
+    <p class="explanation">
+        <?php echo __('These options are only used when the respective plugins are enabled.'); ?>
+        <?php echo __('Some combinations of routes may be not usable.'); ?>
+    </p>
+    <div class="field">
+        <div class="two columns alpha">
+            <?php echo $this->formLabel('clean_url_route_plugins', __('Plugins')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <?php
+            $availables = apply_filters('clean_url_route_plugins', array());
+            if (!empty($availables)):
+            ?>
+            <ul class="checkboxes">
+                <?php
+                $alloweds = unserialize(get_option('clean_url_route_plugins')) ?: array();
+                foreach ($availables as $key => $plugin):
+                    echo '<li>';
+                    echo $this->formCheckbox('clean_url_route_plugins[]', $key,
+                        array('checked' => in_array($key, $alloweds) ? 'checked' : ''));
+                        echo $plugin['plugin'] . (plugin_is_active($plugin['plugin']) ? '' : ' <em>(' . __('inactive') . ')</em>');
+                    echo '</li>';
+                endforeach;
+                ?>
+            </ul>
+            <p class="explanation">
+                <?php echo __('These options allows to add a suffix to the selected urls.'); ?>
+            </p>
+            <?php else: ?>
+            <p class="explanation">
+                <?php echo __('No available route.'); ?>
+            </p>
+            <?php endif; ?>
+        </div>
+    </div>
+</fieldset>

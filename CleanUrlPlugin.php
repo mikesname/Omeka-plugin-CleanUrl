@@ -14,6 +14,9 @@
  */
 class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
 {
+    /**
+     * @var array This plugin's hooks.
+     */
     protected $_hooks = array(
         'install',
         'upgrade',
@@ -24,6 +27,16 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'define_routes',
     );
 
+    /**
+     * @var array This plugin's filters.
+     */
+    protected $_filters = array(
+        'clean_url_route_plugins',
+    );
+
+    /**
+     * @var array This plugin's options.
+     */
     protected $_options = array(
         // 43 is the hard set id of "Dublin Core:Identifier" in default install.
         'clean_url_identifier_element' => 43,
@@ -39,6 +52,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_file_generic' => 'file/',
         'clean_url_use_admin' => false,
         'clean_url_display_admin_browse_identifier' => true,
+        'clean_url_route_plugins' => 'a:0:{}',
     );
 
     /**
@@ -155,6 +169,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
             if (in_array($optionKey, array(
                     'clean_url_item_alloweds',
                     'clean_url_file_alloweds',
+                    'clean_url_route_plugins',
                 ))) {
                $post[$optionKey] = serialize($post[$optionKey]) ?: serialize(array());
             }
@@ -312,5 +327,16 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'collection_id' => NULL,
             )));
         }
+    }
+
+    /**
+     * Add a route to a plugin.
+     *
+     * @param array $routePlugins Route plugins array.
+     * @return array Filtered route plugins array.
+    */
+    public function filterCleanUrlRoutePlugins($routePlugins)
+    {
+        return $routePlugins;
     }
 }

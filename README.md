@@ -97,7 +97,22 @@ So the configuration of the plugin let you choose among these possible paths:
     - / main_path / :identifier_collection / :identifier_item / :identifier_file
     - / main_path / generic_collection / :identifier_collection / :identifier_item / :identifier_file
 
-Note: only a logical combination of some of these paths are available together!
+Note: only logical combinations of some of these paths are available together!
+
+
+Compatibility with other plugins
+--------------------------------
+
+Clean Url is compatible with all plugins.
+
+Routes to plugins can be added with the filter "clean_url_route_plugins". Then,
+when `?rp=my_name` will be appended to the url, Clean Url will forward the
+record to the plugin. Query params are kept.
+
+Nevertheless, the default url may be still used in theme. So the theme may need
+to be modified too.
+
+### Archive Repertory
 
 Use the plugin [Archive Repertory] if you wish to set similar paths for real
 files (collection_identifier / item_identifier / true_filename).
