@@ -151,16 +151,16 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         $post['clean_url_file_alloweds'][] = $post['clean_url_file_default'];
         $post['clean_url_file_alloweds'] = array_values(array_unique($post['clean_url_file_alloweds']));
 
-        foreach (array(
-                'clean_url_item_alloweds',
-                'clean_url_file_alloweds',
-            ) as $posted) {
-            $post[$posted] = isset($post[$posted])
-                ? serialize($post[$posted])
-                : serialize(array());
-        }
-        foreach ($post as $key => $value) {
-            set_option($key, $value);
+        foreach ($this->_options as $optionKey => $optionValue) {
+            if (in_array($optionKey, array(
+                    'clean_url_item_alloweds',
+                    'clean_url_file_alloweds',
+                ))) {
+               $post[$optionKey] = serialize($post[$optionKey]) ?: serialize(array());
+            }
+            if (isset($post[$optionKey])) {
+                set_option($optionKey, $post[$optionKey]);
+            }
         }
     }
 
