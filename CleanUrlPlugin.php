@@ -337,6 +337,32 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     */
     public function filterCleanUrlRoutePlugins($routePlugins)
     {
+        $routePlugins['bookreader'] = array(
+            'plugin' => 'BookReader',
+            'record_types' => array('Item'),
+            'map' => array(
+                'id' => 'id',
+            ),
+            'params' => array(
+                'module' => 'book-reader',
+                'controller' => 'viewer',
+                'action' => 'show',
+            ),
+        );
+
+        $routePlugins['embed'] = array(
+            'plugin' => 'EmbedCodes',
+            'record_types' => array('Item'),
+            'map' => array(
+                'id' => 'id',
+            ),
+            'params' => array(
+                'module' => 'embed-codes',
+                'controller' => 'index',
+                'action' => 'embed',
+            ),
+        );
+
         return $routePlugins;
     }
 }

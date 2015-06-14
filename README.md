@@ -112,6 +112,13 @@ record to the plugin. Query params are kept.
 Nevertheless, the default url may be still used in theme. So the theme may need
 to be modified too.
 
+### Internally Managed Routes
+
+The reroute from a clean url to these plugins are included:
+
+- [BookReader]
+- [Embed Codes]
+
 ### Archive Repertory
 
 Use the plugin [Archive Repertory] if you wish to set similar paths for real
@@ -179,6 +186,8 @@ Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 [Omeka]: https://omeka.org
 [plugin issues]: https://github.com/Daniel-KM/CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
+[BookReader]: https://github.com/jsicot/BookReader
+[Embed Codes]: https://omeka.org/codex/Plugins/EmbedCodes
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
 [GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [FSF]: https://www.fsf.org
