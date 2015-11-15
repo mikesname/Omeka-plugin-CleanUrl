@@ -156,6 +156,41 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
                 ? array_shift($results)
                 : $results;
         }
+
+        // Return the records via the Omeka id.
+        elseif ($recordType) {
+            $ids = array_filter(array_map('intval', $identifiers));
+            if ($ids) {
+                $table = $db->getTable($recordType);
+                $alias = $table->getTableAlias();
+                $records = $table->findBySql($alias . '.id IN (' . implode(',', $ids) . ')');
+                if ($records) {
+                    // Public is automatically checked.
+                    switch ($return) {
+                        case 'record':
+                        default:
+                            return $records;
+
+                        case 'type and id':
+                            $results = array();
+                            foreach ($records as $record) {
+                                $results[] = array(
+                                    'record_type' => $recordType,
+                                    'record_id' => $record->id,
+                                );
+                            }
+                            return $results;
+
+                        case 'id':
+                            $results = array();
+                            foreach ($records as $record) {
+                                $results[] = $record->id;
+                            }
+                            return $results;
+                    }
+                }
+            }
+        }
     }
 
     /**

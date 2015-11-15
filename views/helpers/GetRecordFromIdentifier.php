@@ -146,6 +146,31 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
                     return $result['record_id'];
             }
         }
+
+        // Return the record via the Omeka id.
+        elseif ($recordType) {
+            $id = (integer) $identifier;
+            if ($id !== 0) {
+                $record = get_record_by_id($recordType, $id);
+                if ($record) {
+                    // Public is automatically checked.
+                    switch ($return) {
+                        case 'record':
+                        default:
+                            return $record;
+
+                        case 'type and id':
+                            return array(
+                                'record_type' => $recordType,
+                                'record_id' => $id,
+                            );
+
+                        case 'id':
+                            return $id;
+                    }
+                }
+            }
+        }
     }
 
     /**
