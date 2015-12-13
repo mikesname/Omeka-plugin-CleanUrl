@@ -138,13 +138,13 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
                     break;
 
                 case 'type and id':
-                    if ($checkPublicFile) {
+                    if ($checkPublic) {
                         $results = array_filter($results, 'self::_removePrivateFile');
                     }
                     break;
 
                 case 'id':
-                    if ($checkPublicFile) {
+                    if ($checkPublic) {
                         $results = array_filter($results, 'self::_removePrivateFile');
                     }
                     foreach ($results as $key => $result) {
