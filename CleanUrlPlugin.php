@@ -172,7 +172,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     'clean_url_file_alloweds',
                     'clean_url_route_plugins',
                 ))) {
-               $post[$optionKey] = serialize($post[$optionKey]) ?: serialize(array());
+               $post[$optionKey] = empty($post[$optionKey]) ? serialize(array()) : serialize($post[$optionKey]);
             }
             if (isset($post[$optionKey])) {
                 set_option($optionKey, $post[$optionKey]);
