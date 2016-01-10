@@ -99,9 +99,9 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
             $toQuote[] = $prefix . $identifier;
             // Check with a space between prefix and identifier too.
             $toQuote[] = $prefix . ' ' . $identifier;
-            // Check with no space inside the prefix.
+            // Check prefix with a space and a no-break space.
             if (get_option('clean_url_identifier_unspace')) {
-                $unspace = str_replace(' ', '', $prefix);
+                $unspace = str_replace(array(' ', ' '), '', $prefix);
                 if ($prefix != $unspace) {
                     // Check with a space between prefix and identifier too.
                     $toQuote[] = $unspace . $identifier;

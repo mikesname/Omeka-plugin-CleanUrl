@@ -37,21 +37,28 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
         );
 
         $prefix = get_option('clean_url_identifier_prefix');
+        $checkUnspace = false;
         if ($prefix) {
-            // TODO Manage the special case where a space is inside the prefix.
-            // Keep only the identifier without the configured prefix.
-            $prefixLength = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLength . '))';
-            $sqlWhereText = 'AND element_texts.text LIKE ?';
             $bind[] = $prefix . '%';
+            // Check prefix with a space and a no-break space.
+            $unspace = str_replace(array(' ', ' '), '', $prefix);
+            if ($prefix != $unspace && get_option('clean_url_identifier_unspace')) {
+                $checkUnspace = true;
+                $sqlWhereText = 'AND (element_texts.text LIKE ? OR element_texts.text LIKE ?)';
+                $bind[] = $unspace . '%';
+            }
+            // Normal prefix.
+            else {
+                $sqlWhereText = 'AND element_texts.text LIKE ?';
+            }
         }
+        // No prefix.
         else {
-            $sqlSelect = 'SELECT element_texts.text';
             $sqlWhereText = '';
         }
 
         $sql = "
-            $sqlSelect
+            SELECT element_texts.text
             FROM {$db->ElementText} element_texts
             WHERE element_texts.element_id = '$elementId'
                 AND element_texts.record_type = ?
@@ -62,8 +69,21 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
         ";
         $identifier = $db->fetchOne($sql, $bind);
 
-        return $rawEncoded
-            ? rawurlencode($identifier)
-            : $identifier;
+        // Keep only the identifier without the configured prefix.
+        if ($identifier) {
+            if ($prefix) {
+                $length = $checkUnspace && strpos($identifier, $unspace) === 0
+                    // May be a prefix with space.
+                    ? strlen($unspace)
+                    // Normal prefix.
+                    : strlen($prefix);
+                $identifier = trim(substr($identifier, $length));
+            }
+            return $rawEncoded
+                ? rawurlencode($identifier)
+                : $identifier;
+        }
+
+        return '';
     }
 }

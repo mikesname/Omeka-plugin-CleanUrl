@@ -252,9 +252,9 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
         $toQuote[] = $prefix . $this->_record_identifier;
         // Check with a space between prefix and identifier too.
         $toQuote[] = $prefix . ' ' . $this->_record_identifier;
-        // Check with no space inside the prefix.
+        // Check prefix with a space and a no-break space.
         if (get_option('clean_url_identifier_unspace')) {
-            $unspace = str_replace(' ', '', $prefix);
+            $unspace = str_replace(array(' ', ' '), '', $prefix);
             if ($prefix != $unspace) {
                 $toQuote[] = $unspace . $this->_record_identifier;
                 $toQuote[] = $unspace . ' ' . $this->_record_identifier;

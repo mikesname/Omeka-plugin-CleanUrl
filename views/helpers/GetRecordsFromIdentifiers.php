@@ -95,9 +95,9 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
             // Check with a space between prefix and identifier too.
             $ids = array_map('self::_addPrefixToIdentifier', $identifiers);
             $identifiers = array_merge($ids, array_map('self::_addPrefixSpaceToIdentifier', $identifiers));
-            // Check with no space inside the prefix.
+            // Check prefix with a space and a no-break space.
             if (get_option('clean_url_identifier_unspace')) {
-                $unspace = str_replace(' ', '', self::$_prefix);
+                $unspace = str_replace(array(' ', ' '), '', self::$_prefix);
                 if (self::$_prefix != $unspace) {
                     $identifiers = array_merge($identifiers, array_map('self::_addUnspacedPrefixToIdentifier', $identifiers));
                     $identifiers = array_merge($identifiers, array_map('self::_addUnspacedPrefixSpaceToIdentifier', $identifiers));
@@ -218,19 +218,19 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
     }
 
     /**
-     * Add prefix to an identifier.
+     * Add unspaced prefix to an identifier.
      */
     private static function _addUnspacedPrefixToIdentifier($string)
     {
-        return str_replace(' ', '', self::$_prefix) . $string;
+        return str_replace(array(' ', ' '), '', self::$_prefix) . $string;
     }
 
     /**
-     * Add prefix and space to an identifier.
+     * Add unspaced prefix and space to an identifier.
      */
     private static function _addUnspacedPrefixSpaceToIdentifier($string)
     {
-        return str_replace(' ', '', self::$_prefix) . ' ' . $string;
+        return str_replace(array(' ', ' '), '', self::$_prefix) . ' ' . $string;
     }
 
     /**
