@@ -52,6 +52,18 @@
     </div>
     <div class="field">
         <div class="two columns alpha">
+            <?php echo $this->formLabel('clean_url_identifier_unspace', __('Check the prefix without space')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <?php echo $this->formCheckbox('clean_url_identifier_unspace', TRUE, array('checked' => (boolean) get_option('clean_url_identifier_unspace'))); ?>
+            <p class="explanation">
+                <?php echo __('If checked, the prefix will be checked without space inside it too.'); ?>
+                <?php echo __('This may be useful if the prefix is like "record =", but some records use "record=".'); ?>
+            </p>
+        </div>
+    </div>
+    <div class="field">
+        <div class="two columns alpha">
             <?php echo $this->formLabel('clean_url_case_insensitive', __('Allow case insensitive identifier')); ?>
         </div>
         <div class='inputs five columns omega'>

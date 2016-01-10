@@ -38,6 +38,7 @@ class CleanUrl_View_Helper_GetRecordIdentifier extends Zend_View_Helper_Abstract
 
         $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
+            // TODO Manage the special case where a space is inside the prefix.
             // Keep only the identifier without the configured prefix.
             $prefixLength = strlen($prefix) + 1;
             $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLength . '))';

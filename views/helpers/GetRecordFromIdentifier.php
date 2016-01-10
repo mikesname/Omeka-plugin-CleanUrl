@@ -84,30 +84,41 @@ class CleanUrl_View_Helper_GetRecordFromIdentifier extends Zend_View_Helper_Abst
         if ($withPrefix) {
             // If the table is case sensitive, lower-case the search.
             if (get_option('clean_url_case_insensitive')) {
-                $identifier = strtolower($identifier);
+                $bind[] = strtolower($identifier);
                 $sqlWhereText = "AND LOWER(element_texts.text) = ?";
             }
             // Default.
             else {
+                $bind[] = $identifier;
                 $sqlWhereText = 'AND element_texts.text = ?';
             }
-            $bind[] = $identifier;
         }
         else {
             $prefix = get_option('clean_url_identifier_prefix');
+            $toQuote = array();
+            $toQuote[] = $prefix . $identifier;
+            // Check with a space between prefix and identifier too.
+            $toQuote[] = $prefix . ' ' . $identifier;
+            // Check with no space inside the prefix.
+            if (get_option('clean_url_identifier_unspace')) {
+                $unspace = str_replace(' ', '', $prefix);
+                if ($prefix != $unspace) {
+                    // Check with a space between prefix and identifier too.
+                    $toQuote[] = $unspace . $identifier;
+                    $toQuote[] = $unspace . ' ' . $identifier;
+                }
+            }
+            $quoted = $db->quote($toQuote);
+
             // If the table is case sensitive, lower-case the search.
             if (get_option('clean_url_case_insensitive')) {
-                $prefix = strtolower($prefix);
-                $identifier = strtolower($identifier);
-                $sqlWhereText = 'AND (LOWER(element_texts.text) = ? OR LOWER(element_texts.text) = ?)';
+                $quoted = strtolower($quoted);
+                $sqlWhereText = "AND LOWER(element_texts.text) IN ($quoted)";
             }
             // Default.
             else {
-                $sqlWhereText = 'AND (element_texts.text = ? OR element_texts.text = ?)';
+                $sqlWhereText = "AND element_texts.text IN ($quoted)";
             }
-            $bind[] = $prefix . $identifier;
-            // Check with a space between prefix and identifier too.
-            $bind[] = $prefix . ' ' . $identifier;
         }
 
         $sql = "

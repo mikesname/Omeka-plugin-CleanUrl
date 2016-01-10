@@ -95,19 +95,27 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
             // Check with a space between prefix and identifier too.
             $ids = array_map('self::_addPrefixToIdentifier', $identifiers);
             $identifiers = array_merge($ids, array_map('self::_addPrefixSpaceToIdentifier', $identifiers));
+            // Check with no space inside the prefix.
+            if (get_option('clean_url_identifier_unspace')) {
+                $unspace = str_replace(' ', '', self::$_prefix);
+                if (self::$_prefix != $unspace) {
+                    $identifiers = array_merge($identifiers, array_map('self::_addUnspacedPrefixToIdentifier', $identifiers));
+                    $identifiers = array_merge($identifiers, array_map('self::_addUnspacedPrefixSpaceToIdentifier', $identifiers));
+                }
+            }
         }
 
         // TODO Secure bind for identifiers.
         // If the table is case sensitive, lower-case the search.
         if (get_option('clean_url_case_insensitive')) {
             $identifiers = array_map('strtolower', $identifiers);
-            $commaIdentifiers = "'" . implode("', '", $identifiers) . "'";
-            $sqlWhereText = "AND LOWER(element_texts.text) IN ($commaIdentifiers)";
+            $quoted = $db->quote($identifiers);
+            $sqlWhereText = "AND LOWER(element_texts.text) IN ($quoted)";
         }
         // Default.
         else {
-            $commaIdentifiers = "'" . implode("', '", $identifiers) . "'";
-            $sqlWhereText = "AND element_texts.text IN ($commaIdentifiers)";
+            $quoted = $db->quote($identifiers);
+            $sqlWhereText = "AND element_texts.text IN ($quoted)";
         }
 
         $sqlLimit = $one ? 'LIMIT 1' : '';
@@ -207,6 +215,22 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
     private static function _addPrefixSpaceToIdentifier($string)
     {
         return self::$_prefix . ' ' . $string;
+    }
+
+    /**
+     * Add prefix to an identifier.
+     */
+    private static function _addUnspacedPrefixToIdentifier($string)
+    {
+        return str_replace(' ', '', self::$_prefix) . $string;
+    }
+
+    /**
+     * Add prefix and space to an identifier.
+     */
+    private static function _addUnspacedPrefixSpaceToIdentifier($string)
+    {
+        return str_replace(' ', '', self::$_prefix) . ' ' . $string;
     }
 
     /**

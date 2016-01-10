@@ -248,23 +248,30 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
 
         // Check the dublin core identifier of the record.
         $prefix = get_option('clean_url_identifier_prefix');
-        $bind[] = $prefix . $this->_record_identifier;
+        $toQuote = array();
+        $toQuote[] = $prefix . $this->_record_identifier;
         // Check with a space between prefix and identifier too.
-        $bind[] = $prefix . ' ' . $this->_record_identifier;
+        $toQuote[] = $prefix . ' ' . $this->_record_identifier;
+        // Check with no space inside the prefix.
+        if (get_option('clean_url_identifier_unspace')) {
+            $unspace = str_replace(' ', '', $prefix);
+            if ($prefix != $unspace) {
+                $toQuote[] = $unspace . $this->_record_identifier;
+                $toQuote[] = $unspace . ' ' . $this->_record_identifier;
+            }
+        }
+        $quoted = $db->quote($toQuote);
 
         // If the table is case sensitive, lower-case the search.
         if (get_option('clean_url_case_insensitive')) {
-            $bind[0] = strtolower($bind[0]);
-            $bind[1] = strtolower($bind[1]);
+            $quoted = strtolower($quoted);
             $sqlWhereText =
-                "AND (LOWER(element_texts.text) = ?
-                    OR LOWER(element_texts.text) = ?)";
+                "AND LOWER(element_texts.text) IN ($quoted)";
         }
         // Default.
         else {
             $sqlWhereText =
-                "AND (element_texts.text = ?
-                    OR element_texts.text = ?)";
+                "AND element_texts.text IN ($quoted)";
         }
 
         // Checks if url contains generic or true collection.

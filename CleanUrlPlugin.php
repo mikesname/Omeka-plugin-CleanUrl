@@ -41,7 +41,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         // 43 is the hard set id of "Dublin Core:Identifier" in default install.
         'clean_url_identifier_element' => 43,
         'clean_url_identifier_prefix' => 'document:',
-        'clean_url_case_insensitive' => FALSE,
+        'clean_url_identifier_unspace' => false,
+        'clean_url_case_insensitive' => false,
         'clean_url_main_path' => '',
         'clean_url_collection_generic' => '',
         'clean_url_item_default' => 'generic',
