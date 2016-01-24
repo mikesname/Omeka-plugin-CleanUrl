@@ -16,7 +16,7 @@
 class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abstract
 {
     /**
-     * Get clean url path of a record.
+     * Get clean url path of a record in the default or specified format.
      *
      * @param Record $record
      * @param boolean $withMainPath
@@ -44,9 +44,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 }
 
                 $generic = get_option('clean_url_collection_generic');
-
                 return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
-                break;
 
             case 'Item':
                 $identifier = $this->view->getRecordIdentifier($record);
@@ -57,6 +55,10 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 if (empty($format)) {
                     $format = get_option('clean_url_item_default');
                 }
+                // Else check if the format is allowed.
+                elseif (!$this->_isFormatAllowed($format, 'Item')) {
+                    return '';
+                }
 
                 switch ($format) {
                     case 'generic':
@@ -66,8 +68,14 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                     case 'collection':
                         $collection = $record->getCollection();
                         $collection_identifier = $this->view->getRecordIdentifier($collection);
+                        // The item may be without collection. In that case,
+                        // use the generic path if allowed, and if a specific
+                        // path is not allowed.
                         if (!$collection_identifier) {
-                            return '';
+                            $genericFormat = $this->_getGenericFormat('Item');
+                            return $genericFormat
+                                ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
+                                : '';
                         }
                         return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $collection_identifier . '/' . $identifier;
                 }
@@ -81,6 +89,10 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
 
                 if (empty($format)) {
                     $format = get_option('clean_url_file_default');
+                }
+                // Else check if the format is allowed.
+                elseif (!$this->_isFormatAllowed($format, 'File')) {
+                    return '';
                 }
 
                 switch ($format) {
@@ -103,7 +115,10 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                         $collection = $item->getCollection();
                         $collection_identifier = $this->view->getRecordIdentifier($collection);
                         if (!$collection_identifier) {
-                            return '';
+                            $genericFormat = $this->_getGenericFormat('File');
+                            return $genericFormat
+                                ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
+                                : '';
                         }
                         return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $collection_identifier . '/' . $identifier;
 
@@ -112,7 +127,10 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                         $collection = $item->getCollection();
                         $collection_identifier = $this->view->getRecordIdentifier($collection);
                         if (!$collection_identifier) {
-                            return '';
+                            $genericFormat = $this->_getGenericFormat('File');
+                            return $genericFormat
+                                ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
+                                : '';
                         }
                         $item_identifier = $this->view->getRecordIdentifier($item);
                         if (!$item_identifier) {
@@ -156,5 +174,60 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
         $mainPath = $withMainPath ? get_option('clean_url_main_path') : '';
 
         return ($absolute ? get_view()->serverUrl() : '') . $basePath . '/' . $mainPath;
+    }
+
+    /**
+     * Check if a format is allowed for a record type.
+     *
+     * @param string $format
+     * @param string $recordType
+     * @return boolean|null True if allowed, false if not, null if no format.
+     */
+    private function _isFormatAllowed($format, $recordType)
+    {
+        if (empty($format)) {
+            return;
+        }
+
+        switch ($recordType) {
+            case 'Collection':
+                return true;
+
+            case 'Item':
+                $allowedForItems = unserialize(get_option('clean_url_item_alloweds'));
+                return in_array($format, $allowedForItems);
+
+            case 'File':
+                $allowedForFiles = unserialize(get_option('clean_url_file_alloweds'));
+                return in_array($format, $allowedForFiles);
+        }
+    }
+
+    /**
+     * Return the generic format, if exists, for item or file.
+     *
+     * @param string $recordType
+     * @return string|null
+     */
+    private function _getGenericFormat($recordType)
+    {
+        switch ($recordType) {
+            case 'Item':
+                $allowedForItems = unserialize(get_option('clean_url_item_alloweds'));
+                if (in_array('generic', $allowedForItems)) {
+                    return 'generic';
+                }
+                break;
+
+            case 'File':
+                $allowedForFiles = unserialize(get_option('clean_url_file_alloweds'));
+                if (in_array('generic_item', $allowedForFiles)) {
+                    return 'generic_item';
+                }
+                if (in_array('generic', $allowedForFiles)) {
+                    return 'generic';
+                }
+                break;
+        }
     }
 }
