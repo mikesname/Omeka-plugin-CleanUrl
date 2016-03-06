@@ -3,11 +3,7 @@
  * Clean Url Get Record Full Identifier
  *
  * @todo Use a route name?
- *
  * @see Omeka\View\Helper\RecordUrl.php
- *
- * @copyright Copyright 2007-2012 Roy Rosenzweig Center for History and New Media
- * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
  */
 
 /**
@@ -25,7 +21,6 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
      * @param boolean $absoluteUrl If true, implies current / admin or public
      * path and main path.
      * @param string $format Format of the identifier (default one if empty).
-     *
      * @return string
      *   Full identifier of the record, if any, else empty string.
      */
@@ -44,7 +39,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 }
 
                 $generic = get_option('clean_url_collection_generic');
-                return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+                return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'Item':
                 $identifier = $this->view->getRecordIdentifier($record);
@@ -63,7 +58,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_item_generic');
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'collection':
                         $collection = $record->getCollection();
@@ -77,7 +72,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                                 ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
                                 : '';
                         }
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $collection_identifier . '/' . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $collection_identifier . '/' . $identifier;
                 }
                 break;
 
@@ -98,7 +93,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 switch ($format) {
                     case 'generic':
                         $generic = get_option('clean_url_file_generic');
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
                     case 'generic_item':
                         $generic = get_option('clean_url_file_generic');
@@ -108,7 +103,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                         if (!$item_identifier) {
                             $item_identifier = $item->id;
                         }
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $generic . $item_identifier . '/' . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $item_identifier . '/' . $identifier;
 
                     case 'collection':
                         $item = $record->getItem();
@@ -120,7 +115,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                                 ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
                                 : '';
                         }
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $collection_identifier . '/' . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $collection_identifier . '/' . $identifier;
 
                     case 'collection_item':
                         $item = $record->getItem();
@@ -136,7 +131,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                         if (!$item_identifier) {
                             $item_identifier = $item->id;
                         }
-                        return $this->_getUrlPath($absolute, $withBasePath, $withMainPath) . $collection_identifier . '/' . $item_identifier . '/' . $identifier;
+                        return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $collection_identifier . '/' . $item_identifier . '/' . $identifier;
                 }
                 break;
         }
@@ -148,13 +143,12 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
     /**
      * Return beginning of the record name if needed.
      *
-     * @param boolean $withBasePath Implies main path.
      * @param boolean $withMainPath
-     *
+     * @param boolean $withBasePath Implies main path.
      * @return string
      * The string ends with '/'.
      */
-    protected function _getUrlPath($absolute, $withBasePath, $withMainPath)
+    protected function _getUrlPath($absolute, $withMainPath, $withBasePath)
     {
         if ($absolute) {
             $withBasePath = empty($withBasePath) ? 'current' : $withBasePath;
