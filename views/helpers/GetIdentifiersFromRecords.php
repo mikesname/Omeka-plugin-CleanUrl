@@ -10,6 +10,9 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
 {
     private static $_prefix;
 
+    // The max number of the records to create a temporary table.
+    const CHUNK_RECORDS = 10000;
+
     /**
      * Get identifiers from records.
      *
@@ -45,6 +48,10 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
                 return $v->id;
             }, $records);
         }
+        // Checks records in an array.
+        else {
+            $records = array_map('intval', $records);
+        }
 
         $records = array_filter($records);
         if (empty($records)) {
@@ -57,6 +64,9 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
 
         $elementId = (integer) get_option('clean_url_identifier_element');
 
+        // Create a temporary table when the number of records is very big.
+        $tempTable = count($records) > self::CHUNK_RECORDS;
+
         // Get the list of identifiers.
         $db = get_db();
         $table = $db->getTable('ElementText');
@@ -66,10 +76,9 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
             ->reset(Zend_Db_Select::COLUMNS)
             ->where($alias . '.element_id = ?', $elementId)
             ->where($alias . '.record_type = ?', $recordType)
-            ->where($alias . '.record_id IN (?)', $records)
             // Only one identifier by record.
             ->group($alias . '.record_id')
-            ->order($alias . '.record_id ASC');
+            ->order(array($alias . '.record_id ASC', $alias . '.id ASC'));
 
         $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
@@ -131,6 +140,29 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
 
         if ($one) {
             $select->limit(1);
+        }
+
+        if ($tempTable) {
+            $query = 'DROP TABLE IF EXISTS temp_records;';
+            $stmt = $db->query($query);
+            $query = 'CREATE TEMPORARY TABLE temp_records (id INT UNSIGNED NOT NULL);';
+            $stmt = $db->query($query);
+            foreach (array_chunk($records, self::CHUNK_RECORDS) as $chunk) {
+                $query = 'INSERT INTO temp_records VALUES(' . implode('),(', $chunk) . ');';
+                $stmt = $db->query($query);
+            }
+            $select
+                ->joinInner(
+                    array('temp_records' => 'temp_records'),
+                    'temp_records.id = ' . $alias . '.record_id',
+                    array()
+                );
+            // No where condition.
+        }
+        // The number of records is reasonable.
+        else {
+            $select
+                ->where($alias . '.record_id IN (?)', $records);
         }
 
         $result = $table->fetchPairs($select);
