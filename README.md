@@ -1,6 +1,8 @@
 Clean Url (plugin for Omeka)
 ============================
 
+[![Build Status](https://travis-ci.org/Daniel-KM/CleanUrl.svg?branch=master)](https://travis-ci.org/Daniel-KM/CleanUrl)
+
 [Clean Url] is a plugin for [Omeka] that creates clean, readable and search
 engine optimized URLs like `http://example.com/my_collection/dc:identifier`
 instead of `http://example.com/items/show/internal_code`. Used identifiers come

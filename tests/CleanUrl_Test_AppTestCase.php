@@ -126,7 +126,7 @@ class CleanUrl_Test_AppTestCase extends Omeka_Test_AppTestCase
         parent::setUp();
 
         $this->_view = get_view();
-        $this->_view->addHelperPath(CLEAN_URL_DIR . '/views/helpers', self::PLUGIN_NAME . '_View_Helper_');
+        $this->_view->addHelperPath(PLUGIN_DIR . '/CleanUrl/views/helpers', self::PLUGIN_NAME . '_View_Helper_');
 
         $pluginHelper = new Omeka_Test_Helper_Plugin;
         $pluginHelper->setUp(self::PLUGIN_NAME);
@@ -213,7 +213,7 @@ class CleanUrl_Test_AppTestCase extends Omeka_Test_AppTestCase
                         }
                         $record = insert_item($metadataItem, $elementTexts);
                         if (!empty($recordMetadata['files'])) {
-                            $fileUrl = TEST_DIR . '/_files/test.txt';
+                            $fileUrl = TEST_DIR . '/_files/test.jpg';
                             $files[$recordMetadata['item_id']] = insert_files_for_item($record, 'Filesystem', array_fill(0, $recordMetadata['files'], $fileUrl));
                         }
                         break;
