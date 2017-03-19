@@ -13,4 +13,4 @@ echo "Plugin Directory: $PLUGIN_DIR"
 echo "Omeka Directory: $OMEKA_DIR"
 
 cat $(which phpunit)
-cd tests/ && phpunit --configuration phpunit_travis.xml
+cd tests/ && phpunit --configuration phpunit.xml

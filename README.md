@@ -32,9 +32,9 @@ Simply set an identifier for each record in a field (`Dublin Core:Identifier` by
 default). Recommended fields to use are `Dublin Core:Identifier` or an added
 specific field. This field should be available for collections, items and files.
 
-- Identifiers can be any strings with any characters, as long as they don't
+- Identifiers can be any strings with any characters, as long as they don’t
 contain reserved characters like "/" and "%".
-- To use numbers as identifier is possible but not recommended. if so, it's
+- To use numbers as identifier is possible but not recommended. if so, it’s
 recommended that all records have got an identifier.
 - A prefix can be added if you have other data in the same field.
 - A record can have multiple identifiers. The first one will be used to set the
@@ -132,8 +132,8 @@ Warning
 
 Use it at your own risk.
 
-It's always recommended to backup your files and database regularly so you can
-roll back if needed.
+It’s always recommended to backup your files and your databases and to check
+your archives regularly so you can roll back if needed.
 
 
 Troubleshooting
@@ -150,11 +150,11 @@ This plugin is published under the [CeCILL v2.1] licence, compatible with
 
 In consideration of access to the source code and the rights to copy, modify and
 redistribute granted by the license, users are provided only with a limited
-warranty and the software's author, the holder of the economic rights, and the
+warranty and the software’s author, the holder of the economic rights, and the
 successive licensors only have limited liability.
 
 In this respect, the risks associated with loading, using, modifying and/or
-developing or reproducing the software by the user are brought to the user's
+developing or reproducing the software by the user are brought to the user’s
 attention, given its Free Software status, which may make it complicated to use,
 with the result that its use is reserved for developers and experienced
 professionals having in-depth computer knowledge. Users are therefore encouraged
