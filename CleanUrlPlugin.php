@@ -23,6 +23,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'uninstall',
         'config_form',
         'config',
+        'after_save_collection',
+        'after_delete_collection',
         'admin_items_browse_simple_each',
         'define_routes',
     );
@@ -44,6 +46,7 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         'clean_url_identifier_unspace' => false,
         'clean_url_case_insensitive' => false,
         'clean_url_main_path' => '',
+        'clean_url_collection_regex' => '',
         'clean_url_collection_generic' => '',
         'clean_url_item_default' => 'generic',
         'clean_url_item_alloweds' => 'a:2:{i:0;s:7:"generic";i:1;s:10:"collection";}',
@@ -62,6 +65,8 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInstall()
     {
         $this->_installOptions();
+
+        $this->cacheCollectionsRegex();
     }
 
     /**
@@ -119,6 +124,10 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                     set_option($option, $path . '/');
                 }
             }
+        }
+
+        if (version_compare($oldVersion, '2.16', '<')) {
+            $this->cacheCollectionsRegex();
         }
     }
 
@@ -178,6 +187,18 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
                 set_option($optionKey, $post[$optionKey]);
             }
         }
+
+        $this->cacheCollectionsRegex();
+    }
+
+    public function hookAfterSaveCollection($args)
+    {
+        $this->cacheCollectionsRegex();
+    }
+
+    public function hookAfterDeleteCollection($args)
+    {
+        $this->cacheCollectionsRegex();
     }
 
     /**
@@ -217,18 +238,11 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         // Note: order of routes is important: Zend checks from the last one
         // (most specific) to the first one (most generic).
 
-        // Get all collections identifiers with one query.
-        $collectionsIdentifiers = get_view()->getRecordTypeIdentifiers('Collection', false);
-
-        if (!empty($collectionsIdentifiers)) {
-            // Use one regex for all collections. Default is case insensitve.
-            $collectionsRegex = array_map('preg_quote', $collectionsIdentifiers);
-            // To avoid a bug with identifiers that contain a "/", that is not
-            // escaped with preg_quote().
-            $collectionsRegex = '(' . str_replace('/', '\/', implode('|', $collectionsRegex)) . ')';
-
+        $collectionsRegex = get_option('clean_url_collection_regex');
+        if (!empty($collectionsRegex)) {
             // Add a collection route.
             $route = $mainPath . $collectionGeneric;
+            // Use one regex for all collections. Default is case insensitve.
             $router->addRoute('cleanUrl_collections', new Zend_Controller_Router_Route(
                 $route . ':record_identifier',
                 array(
@@ -365,5 +379,54 @@ class CleanUrlPlugin extends Omeka_Plugin_AbstractPlugin
         );
 
         return $routePlugins;
+    }
+
+    /**
+     * Cache collection identifiers as string to speed up routing.
+     */
+    protected function cacheCollectionsRegex()
+    {
+        // Get all collection identifiers with one query.
+        try {
+            // The view helper is not available during intall, upgrade and tests.
+            $collectionIdentifiers = get_view()
+                ->getRecordTypeIdentifiers('Collection', false);
+        } catch (Zend_Loader_PluginLoader_Exception $e) {
+            $collectionIdentifiers= $this->getViewHelperRTI()
+                ->getRecordTypeIdentifiers('Collection', false);
+        }
+
+        // To avoid issues with identifiers that contain another identifier,
+        // for example "collection_bis" contains "collection", they are ordered
+        // by reversed length.
+        // This issue occurs in Omeka S, but not in Omeka Classic, but it may
+        // allow a quicker routing and simplify upgrade.
+        array_multisort(
+            array_map('strlen', $collectionIdentifiers),
+            $collectionIdentifiers
+        );
+        $collectionIdentifiers = array_reverse($collectionIdentifiers);
+
+        $collectionsRegex = array_map('preg_quote', $collectionIdentifiers);
+        // To avoid a bug with identifiers that contain a "/", that is not
+        // escaped with preg_quote().
+        $collectionsRegex = str_replace('/', '\/', implode('|', $collectionsRegex));
+
+        set_option('clean_url_collection_regex', $collectionsRegex);
+    }
+
+
+    /**
+     * Get the view helper getRecordTypeIdentifiers.
+     *
+     * @return CleanUrl_View_Helper_GetRecordTypeIdentifiers
+     */
+    protected function getViewHelperRTI()
+    {
+        require_once dirname(__FILE__)
+            . DIRECTORY_SEPARATOR . 'views'
+            . DIRECTORY_SEPARATOR . 'helpers'
+            . DIRECTORY_SEPARATOR . 'GetRecordTypeIdentifiers.php';
+        return new CleanUrl_View_Helper_GetRecordTypeIdentifiers();
     }
 }
