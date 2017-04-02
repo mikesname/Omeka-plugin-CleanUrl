@@ -11,6 +11,9 @@ to manage.
 
 See the example of the digitized heritage of the library of [Mines ParisTech].
 
+This plugin is upgradable to [Omeka S] via the plugin [Upgrade to Omeka S], that
+installs the module [Clean Url for Omeka S].
+
 
 Installation
 ------------
@@ -26,11 +29,14 @@ Usage
 Clean urls are automatically displayed in public theme and they are not used in
 the admin theme. They are case insensitive.
 
-### Identifiers ###
+This module may be used with the module [Archive Repertory] to set similar paths
+for real files (collection_identifier / item_identifier / true_filename).
 
-Simply set an identifier for each record in a field (`Dublin Core:Identifier` by
-default). Recommended fields to use are `Dublin Core:Identifier` or an added
-specific field. This field should be available for collections, items and files.
+### Identifiers
+
+Simply set an identifier for each record in a field. The recommended field is
+`Dublin Core:Identifier`. This field should be available for collections, items
+and files.
 
 - Identifiers can be any strings with any characters, as long as they don’t
 contain reserved characters like "/" and "%".
@@ -47,7 +53,7 @@ them (a main path, a collection identifier or a generic word).
 - If not set, the identifier will be the default id of the record, except for
 collections, where the original path will be used.
 
-### Structure of urls ###
+### Structure of urls
 
 The configuration page let you choose the structure of paths for collections,
 items and files.
@@ -62,14 +68,14 @@ the default url. Other ones can be used to get records.
 
 So the configuration of the plugin let you choose among these possible paths:
 
-*Collections*
+#### Collections
 
     - / :identifier_collection
     - / generic_collection / :identifier_collection
     - / main_path / :identifier_collection
     - / main_path / generic_collection / :identifier_collection
 
-*Items*
+#### Items
 
     - / :identifier_item (currently not available)
     - / generic_item / :identifier_item
@@ -80,7 +86,7 @@ So the configuration of the plugin let you choose among these possible paths:
     - / main_path / :identifier_collection / :identifier_item
     - / main_path / generic_collection / :identifier_collection / :identifier_item
 
-*Files*
+#### Files
 
     - / :identifier_file (currently not available)
     - / :identifier_item / :identifier_file (currently not available)
@@ -179,13 +185,16 @@ The upgrade for Omeka 2.0 has been built for [Mines ParisTech].
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2015
+* Copyright Daniel Berthereau, 2012-2017
 
 Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 
 
 [Clean Url]: https://github.com/Daniel-KM/CleanUrl
 [Omeka]: https://omeka.org
+[Omeka S]: https://omeka.org/s
+[Upgrade to Omeka S]: https://github.com/Daniel-KM/UpgradeToOmekaS
+[Clean Url for Omeka S]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
 [plugin issues]: https://github.com/Daniel-KM/CleanUrl/issues
 [Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
 [BookReader]: https://github.com/jsicot/BookReader
