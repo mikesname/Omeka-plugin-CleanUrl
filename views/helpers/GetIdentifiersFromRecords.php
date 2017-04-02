@@ -60,37 +60,36 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
         }
 
         $elementId = (integer) get_option('clean_url_identifier_element');
+        $prefix = get_option('clean_url_identifier_prefix');
 
         // Get the list of identifiers.
         $db = get_db();
         $table = $db->getTable('ElementText');
-        $alias = $table->getTableAlias();
         $select = $table
             ->getSelect()
             ->reset(Zend_Db_Select::COLUMNS)
-            ->where($alias . '.element_id = ?', $elementId)
-            ->where($alias . '.record_type = ?', $recordType)
+            ->where('element_texts.element_id = ?', $elementId)
+            ->where('element_texts.record_type = ?', $recordType)
             // Only one identifier by record.
-            ->group($alias . '.record_id')
-            ->order(array($alias . '.record_id ASC', $alias . '.id ASC'));
+            ->group('element_texts.record_id')
+            ->order(array('element_texts.record_id ASC', 'element_texts.id ASC'));
 
-        $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
             $select
                 ->columns(array(
                     // Should be the first column.
-                    'id' => $alias . '.record_id',
-                    'identifier' => new Zend_Db_Expr('TRIM(SUBSTR(' . $alias . '.text, ' . (strlen($prefix) + 1) . '))'),
+                    'id' => 'element_texts.record_id',
+                    'identifier' => new Zend_Db_Expr('TRIM(SUBSTR(element_texts.text, ' . (strlen($prefix) + 1) . '))'),
                 ))
-                ->where($alias . '.text LIKE ?', $prefix . '%');
+                ->where('element_texts.text LIKE ?', $prefix . '%');
         }
         // No prefix.
         else {
             $select
                 ->columns(array(
                     // Should be the first column.
-                    $alias . '.record_id AS id',
-                    $alias . '.text AS identifier',
+                    'id' => 'element_texts.record_id',
+                    'identifier' => 'element_texts.text',
                 ));
         }
 
@@ -101,7 +100,7 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
                     $select
                         ->joinLeft(
                             array('_files' => $db->File),
-                            '_files.id = ' . $alias . '.record_id AND ' . $alias . '.record_type = "File"',
+                            '_files.id = element_texts.record_id AND element_texts.record_type = "File"',
                             array()
                         )
                         ->joinLeft(
@@ -115,7 +114,7 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
                     $select
                         ->joinLeft(
                             array('_records' => $db->Item),
-                            '_records.id = ' . $alias . '.record_id AND ' . $alias . '.record_type = "Item"',
+                            '_records.id = element_texts.record_id AND element_texts.record_type = "Item"',
                             array()
                         );
                     break;
@@ -124,7 +123,7 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
                     $select
                         ->joinLeft(
                             array('_records' => $db->Collection),
-                            '_records.id = ' . $alias . '.record_id AND ' . $alias . '.record_type = "Collection"',
+                            '_records.id = element_texts.record_id AND element_texts.record_type = "Collection"',
                             array()
                         );
                     break;
@@ -150,7 +149,7 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
             $select
                 ->joinInner(
                     array('temp_records' => 'temp_records'),
-                    'temp_records.id = ' . $alias . '.record_id',
+                    'temp_records.id = element_texts.record_id',
                     array()
                 );
             // No where condition.
@@ -158,7 +157,7 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
         // The number of records is reasonable.
         else {
             $select
-                ->where($alias . '.record_id IN (?)', $records);
+                ->where('element_texts.record_id IN (?)', $records);
         }
 
         $result = $table->fetchPairs($select);
