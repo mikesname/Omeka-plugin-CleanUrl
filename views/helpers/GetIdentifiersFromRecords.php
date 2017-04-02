@@ -8,8 +8,6 @@
  */
 class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Abstract
 {
-    private static $_prefix;
-
     // The max number of the records to create a temporary table.
     const CHUNK_RECORDS = 10000;
 
@@ -35,9 +33,8 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
             return;
         }
 
-        $one = false;
-        if (is_object($records)) {
-            $one = true;
+        $one = is_object($records);
+        if ($one) {
             $records = array($records);
         }
 
@@ -63,9 +60,6 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
         }
 
         $elementId = (integer) get_option('clean_url_identifier_element');
-
-        // Create a temporary table when the number of records is very big.
-        $tempTable = count($records) > self::CHUNK_RECORDS;
 
         // Get the list of identifiers.
         $db = get_db();
@@ -142,6 +136,8 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
             $select->limit(1);
         }
 
+        // Create a temporary table when the number of records is very big.
+        $tempTable = count($records) > self::CHUNK_RECORDS;
         if ($tempTable) {
             $query = 'DROP TABLE IF EXISTS temp_records;';
             $stmt = $db->query($query);

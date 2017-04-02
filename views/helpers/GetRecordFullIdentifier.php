@@ -48,9 +48,11 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
         $absolute = false,
         $format = null)
     {
+        $view = $this->view;
+
         switch (get_class($record)) {
             case 'Collection':
-                $identifier = $this->view->getRecordIdentifier($record);
+                $identifier = $view->getRecordIdentifier($record);
                 if (empty($identifier)) {
                     return '';
                 }
@@ -59,7 +61,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 return $this->_getUrlPath($absolute, $withMainPath, $withBasePath) . $generic . $identifier;
 
             case 'Item':
-                $identifier = $this->view->getRecordIdentifier($record);
+                $identifier = $view->getRecordIdentifier($record);
                 if (empty($identifier)) {
                     $identifier = $record->id;
                 }
@@ -79,7 +81,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
 
                     case 'collection':
                         $collection = $record->getCollection();
-                        $collection_identifier = $this->view->getRecordIdentifier($collection);
+                        $collection_identifier = $view->getRecordIdentifier($collection);
                         // The item may be without collection. In that case,
                         // use the generic path if allowed, and if a specific
                         // path is not allowed.
@@ -94,7 +96,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                 break;
 
             case 'File':
-                $identifier = $this->view->getRecordIdentifier($record);
+                $identifier = $view->getRecordIdentifier($record);
                 if (empty($identifier)) {
                     $identifier = $record->id;
                 }
@@ -116,7 +118,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                         $generic = get_option('clean_url_file_generic');
 
                         $item = $record->getItem();
-                        $item_identifier = $this->view->getRecordIdentifier($item);
+                        $item_identifier = $view->getRecordIdentifier($item);
                         if (!$item_identifier) {
                             $item_identifier = $item->id;
                         }
@@ -125,7 +127,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                     case 'collection':
                         $item = $record->getItem();
                         $collection = $item->getCollection();
-                        $collection_identifier = $this->view->getRecordIdentifier($collection);
+                        $collection_identifier = $view->getRecordIdentifier($collection);
                         if (!$collection_identifier) {
                             $genericFormat = $this->_getGenericFormat('File');
                             return $genericFormat
@@ -137,14 +139,14 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
                     case 'collection_item':
                         $item = $record->getItem();
                         $collection = $item->getCollection();
-                        $collection_identifier = $this->view->getRecordIdentifier($collection);
+                        $collection_identifier = $view->getRecordIdentifier($collection);
                         if (!$collection_identifier) {
                             $genericFormat = $this->_getGenericFormat('File');
                             return $genericFormat
                                 ? $this->getRecordFullIdentifier($record, $withMainPath, $withBasePath, $absolute, $genericFormat)
                                 : '';
                         }
-                        $item_identifier = $this->view->getRecordIdentifier($item);
+                        $item_identifier = $view->getRecordIdentifier($item);
                         if (!$item_identifier) {
                             $item_identifier = $item->id;
                         }
@@ -441,7 +443,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
 
         $mainPath = $withMainPath ? get_option('clean_url_main_path') : '';
 
-        return ($absolute ? get_view()->serverUrl() : '') . $basePath . '/' . $mainPath;
+        return ($absolute ? $this->view->serverUrl() : '') . $basePath . '/' . $mainPath;
     }
 
     /**

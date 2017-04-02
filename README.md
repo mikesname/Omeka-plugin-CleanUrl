@@ -114,7 +114,7 @@ record to the plugin. Query params are kept.
 Nevertheless, the default url may be still used in theme. So the theme may need
 to be modified too.
 
-### Internally Managed Routes
+### Internally Managed Routes
 
 The reroute from a clean url to these plugins are included:
 
