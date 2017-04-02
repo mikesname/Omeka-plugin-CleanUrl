@@ -21,36 +21,35 @@ class CleanUrl_View_Helper_GetRecordTypeIdentifiers extends Zend_View_Helper_Abs
             return array();
         }
 
+        $elementId = (integer) get_option('clean_url_identifier_element');
+        $prefix = get_option('clean_url_identifier_prefix');
+
         // Use a direct query in order to improve speed.
         $db = get_db();
-        $elementId = (integer) get_option('clean_url_identifier_element');
+        $table = $db->getTable('ElementText');
+        $select = $table
+            ->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->where('element_texts.element_id = ?', $elementId)
+            ->where('element_texts.record_type = ?', $recordType)
+            ->order(array('element_texts.record_id ASC', 'element_texts.id ASC'));
 
-        $bind = array();
-        $bind[] = $recordType;
-
-        $prefix = get_option('clean_url_identifier_prefix');
         if ($prefix) {
-            // Keep only the identifier without the configured prefix.
-            $prefixLenght = strlen($prefix) + 1;
-            $sqlSelect = 'SELECT TRIM(SUBSTR(element_texts.text, ' . $prefixLenght . '))';
-            $sqlWereText = 'AND element_texts.text LIKE ?';
-            $bind[] = $prefix . '%';
+            $select
+                ->columns(array(
+                    new Zend_Db_Expr('TRIM(SUBSTR(element_texts.text, ' . (strlen($prefix) + 1) . '))'),
+                ))
+                ->where('element_texts.text LIKE ?', $prefix . '%');
         }
+        // No prefix.
         else {
-            $sqlSelect = 'SELECT element_texts.text';
-            $sqlWereText = '';
+            $select
+                ->columns(array(
+                    'element_texts.text',
+                ));
         }
 
-        $sql = "
-            $sqlSelect
-            FROM {$db->ElementText} element_texts
-            WHERE element_texts.element_id = '$elementId'
-                AND element_texts.record_type = ?
-                $sqlWereText
-            ORDER BY element_texts.record_id ASC, element_texts.id ASC
-        ";
-        $result = $db->fetchCol($sql, $bind);
-
+        $result = $table->fetchCol($select);
         return $rawUrlEncode
             ? array_map('rawurlencode', $result)
             : $result;
