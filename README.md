@@ -22,6 +22,16 @@ Uncompress files and rename plugin folder "CleanUrl".
 
 Then install it like any other Omeka plugin and follow the config instructions.
 
+### Automatic test
+
+For testing and debugging, phpunit 5.7 is required. If you don’t have it:
+
+```
+cd tests
+wget https://phar.phpunit.de/phpunit-5.7.phar
+php phpunit-5.7.phar
+```
+
 
 Usage
 -----
