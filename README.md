@@ -195,7 +195,7 @@ The upgrade for Omeka 2.0 has been built for [Mines ParisTech].
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2017
+* Copyright Daniel Berthereau, 2012-2018
 
 Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 
