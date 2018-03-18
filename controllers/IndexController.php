@@ -223,8 +223,7 @@ class CleanUrl_IndexController extends Omeka_Controller_AbstractActionController
      *
      * Collections are managed directly in collectionShowAction().
      *
-     * @return id
-     *   Id of the record.
+     * @return int Id of the record.
      */
     protected function _routeRecord()
     {

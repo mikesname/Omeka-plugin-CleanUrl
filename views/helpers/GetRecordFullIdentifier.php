@@ -14,10 +14,10 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
     /**
      * Get clean url path of a record in the default or specified format.
      *
-     * @param Record|array $record The use of an array improves the speed when
-     * the identifiers are already known (without prefix). If the upper level
-     * identifier is required and not set, it will be fetched. Examples for a
-     * collection, an item and a file:
+     * @param Omeka_Record_AbstractRecord|array $record The use of an array
+     * improves the speed when the identifiers are already known (without
+     * prefix). If the upper level identifier is required and not set, it will
+     * be fetched. Examples for a collection, an item and a file:
      * ['type' => 'Collection', 'id' => '1', 'identifier' => 'alpha']
      * ['type' => 'Item', 'id' => '2', 'identifier' => 'beta', 'collection' => ['id' => '1', 'identifier' => 'alpha']]
      * ['type' => 'File', 'id' => '3', 'identifier' => 'gamma', 'item' => ['id' => '2', 'identifier' => 'beta', ], 'collection' => ['id' => '1', 'identifier' => 'alpha']]
@@ -421,8 +421,7 @@ class CleanUrl_View_Helper_GetRecordFullIdentifier extends Zend_View_Helper_Abst
      *
      * @param boolean $withMainPath
      * @param boolean $withBasePath Implies main path.
-     * @return string
-     * The string ends with '/'.
+     * @return string The string ends with '/'.
      */
     protected function _getUrlPath($absolute, $withMainPath, $withBasePath)
     {

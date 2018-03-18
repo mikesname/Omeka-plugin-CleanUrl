@@ -62,7 +62,7 @@ class CleanUrl_View_Helper_RecordUrl extends Omeka_View_Helper_RecordUrl
     /**
      * Get clean url path of a record.
      *
-     * @param AbstractRecord $record
+     * @param Omeka_Record_AbstractRecord $record
      * @param string|null $action
      * @return string|null  Identifier of the record, if any, else empty string.
      */

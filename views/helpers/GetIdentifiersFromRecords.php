@@ -16,7 +16,8 @@ class CleanUrl_View_Helper_GetIdentifiersFromRecords extends Zend_View_Helper_Ab
      *
      * @todo Return public files when public is checked.
      *
-     * @param array|Record $records A list of records as object or as array of ids.
+     * @param array|Omeka_Record_AbstractRecord $records A list of records as
+     * object or as array of ids.
      * Types shouldn't be mixed. If object, it should be a record.
      * @param string $recordType The record type if $records is an array.
      * @param boolean $checkPublic Return results depending on users (default)

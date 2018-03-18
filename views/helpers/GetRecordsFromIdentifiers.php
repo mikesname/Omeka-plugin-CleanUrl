@@ -237,7 +237,7 @@ class CleanUrl_View_Helper_GetRecordsFromIdentifiers extends Zend_View_Helper_Ab
      * Return false if a record is a private file.
      *
      * @todo Check public file via a direct query in getRecordFromIdentifier().
-     * @param record $id File id to check.
+     * @param array $record File id to check.
      * @return boolean
      */
     private static function _removePrivateFile($record)
