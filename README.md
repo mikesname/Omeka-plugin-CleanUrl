@@ -200,13 +200,13 @@ Copyright
 Initially based on ItemId of Jim Safley (see [GitHub ItemId]).
 
 
-[Clean Url]: https://github.com/Daniel-KM/CleanUrl
+[Clean Url]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl
 [Omeka]: https://omeka.org
 [Omeka S]: https://omeka.org/s
-[Upgrade to Omeka S]: https://github.com/Daniel-KM/UpgradeToOmekaS
+[Upgrade to Omeka S]: https://github.com/Daniel-KM/Omeka-plugin-UpgradeToOmekaS
 [Clean Url for Omeka S]: https://github.com/Daniel-KM/Omeka-S-module-CleanUrl
-[plugin issues]: https://github.com/Daniel-KM/CleanUrl/issues
-[Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
+[plugin issues]: https://github.com/Daniel-KM/Omeka-plugin-CleanUrl/issues
+[Archive Repertory]: https://github.com/Daniel-KM/Omeka-plugin-ArchiveRepertory
 [BookReader]: https://github.com/jsicot/BookReader
 [Embed Codes]: https://omeka.org/codex/Plugins/EmbedCodes
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html

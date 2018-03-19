@@ -8,7 +8,7 @@
 <p>
 <?php
     echo __('"CleanUrl" plugin allows to have clean, readable and search engine optimized Urls like http://example.com/my_collection/item_identifier.') . '<br />';
-    echo __('See %s for more information.', '<a href="https://github.com/Daniel-KM/CleanUrl">ReadMe</a>');
+    echo __('See %s for more information.', '<a href="https://github.com/Daniel-KM/Omeka-plugin-CleanUrl">ReadMe</a>');
     echo '<br />';
     echo __('%sNote%s: identifiers should never contain reserved characters such "/" or "%%".', '<strong>', '</strong>');
 ?>
