@@ -10,6 +10,8 @@ php:
   - '7.0'
   - '7.1'
   - '7.2'
+  - '7.3'
+  - '7.4'
 
 env:
   #- OMEKA_BRANCH=stable-1.5
@@ -20,6 +22,7 @@ env:
   - OMEKA_BRANCH=stable-2.4
   - OMEKA_BRANCH=stable-2.5
   - OMEKA_BRANCH=stable-2.6
+  - OMEKA_BRANCH=v2.7.1
 
 before_script:
   - ./tests/travis_setup.sh
